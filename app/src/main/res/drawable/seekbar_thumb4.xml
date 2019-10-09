@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--  加载中  -->
+    <item android:drawable="@drawable/song_player_seek_bar_thumb_rotate_btn" android:state_selected="true" />
+
+    <!-- 按下状态 -->
+    <item android:drawable="@drawable/song_player_seek_bar_thumb_btn" android:state_pressed="true" android:state_selected="false" />
+
+    <!-- 普通无焦点状态 -->
+    <item android:drawable="@drawable/song_player_seek_bar_thumb_btn" android:state_focused="false" android:state_pressed="false" android:state_selected="false" />
+
+</selector>
