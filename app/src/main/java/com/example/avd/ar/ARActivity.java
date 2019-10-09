@@ -40,12 +40,14 @@ public class ARActivity extends AppCompatActivity {
     @BindView(R.id.status)
     TextView mStatus;
 
+    // 初始化配置
     private int mAudioSource;
     private int mSampleRateInHz;
     private int mChannelConfig;
     private int mAudioFormat;
     private int mBufferSizeInBytes;
     private AudioRecord mAudioRecord;
+    // 其他
     private File mFileDir;
     private String mPcmFileName = "audio.pcm";
     private String mMavFileName = "audio.mav";
@@ -57,7 +59,13 @@ public class ARActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ar);
         ButterKnife.bind(this);
-        requestPermissions();
+        requestPermissions(); // 需要录制权限
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mAudioRecord.release(); // 回收
     }
 
     @SuppressLint("CheckResult")
@@ -129,23 +137,25 @@ public class ARActivity extends AppCompatActivity {
                     mAudioRecord.startRecording();
                     while (mIsRecording) {
                         int result = mAudioRecord.read(buffer, 0, mBufferSizeInBytes);
-                        for (int i = 0; i < result; i++) {
-                            dos.write(buffer[i]);
-                        }
+
+                        dos.write(buffer);
+
+//                        for (int i = 0; i < result; i++) {
+//                            dos.write(buffer[i]);
+//                        }
 
                         // 更新状态
                         if (count % 3 == 0) {
-                            mStatus.setText("录制中。");
+                            mStatus.setText("录制中 。");
                         } else if (count % 3 == 1) {
-                            mStatus.setText("录制中。。");
+                            mStatus.setText("录制中 。。");
                         } else {
-                            mStatus.setText("录制中。。。");
+                            mStatus.setText("录制中 。。。");
                         }
                         count++;
                     }
 
                     mAudioRecord.stop();
-                    mAudioRecord.release();
                     dos.close();
 
                 } catch (IOException e) {
