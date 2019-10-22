@@ -226,8 +226,11 @@ public class ARActivity extends AppCompatActivity {
             in.close();
             out.close();
 
+            mStatus.setText("转换成功");
+
         } catch (IOException e) {
             e.printStackTrace();
+            mStatus.setText("转换失败");
         }
     }
 

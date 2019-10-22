@@ -11,14 +11,14 @@
         android:id="@+id/media_player"
         style="@style/normal_button"
         android:onClick="clickBtn1"
-        android:text="MediaPlayer"
+        android:text="播放音频 MediaPlayer"
         tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/audio_record"
         style="@style/normal_button"
         android:onClick="clickBtn2"
-        android:text="AudioRecord"
+        android:text="录制音频 AudioRecord"
         tools:ignore="HardcodedText" />
 
 </LinearLayout>
