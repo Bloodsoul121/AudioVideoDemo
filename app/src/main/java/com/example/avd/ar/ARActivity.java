@@ -9,12 +9,14 @@ import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.avd.BaseActivity;
 import com.example.avd.R;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
@@ -33,12 +35,16 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.functions.Consumer;
 
-public class ARActivity extends AppCompatActivity {
+public class ARActivity extends BaseActivity {
 
     private static final String TAG = ARActivity.class.getSimpleName();
 
     @BindView(R.id.status)
     TextView mStatus;
+    @BindView(R.id.edit)
+    EditText mEdit;
+    @BindView(R.id.path)
+    TextView mPath;
 
     // 初始化配置
     private int mAudioSource;
@@ -60,6 +66,8 @@ public class ARActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ar);
         ButterKnife.bind(this);
         requestPermissions(); // 需要录制权限
+
+        mPath.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
     }
 
     @Override
@@ -387,5 +395,51 @@ public class ARActivity extends AppCompatActivity {
 
     private short byteArrayToShort(byte[] byteShortValue) {
         return ByteBuffer.wrap(byteShortValue).order(ByteOrder.LITTLE_ENDIAN).getShort();
+    }
+
+    /******************************** 播放指定PCM文件 **********************************/
+
+    public void setOriFilePath(View view) {
+        File oriFile = new File(Environment.getExternalStorageDirectory(), mEdit.getText().toString());
+        String pcmFilePath = oriFile.getAbsolutePath();
+        mPath.setText(pcmFilePath);
+    }
+
+    public void playAudioPcm2(View view) {
+        String fileName = mEdit.getText().toString();
+        if (TextUtils.isEmpty(fileName)) {
+            toast("file name is null");
+            return;
+        }
+
+        mIsPlaying = true;
+        File file = new File(Environment.getExternalStorageDirectory(), fileName);
+        try {
+            DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+            int bufferSize = AudioTrack.getMinBufferSize(mSampleRateInHz, mChannelConfig, mAudioFormat);
+            AudioTrack audioTrack = new AudioTrack(mAudioSource, mSampleRateInHz, mChannelConfig, mAudioFormat, bufferSize, AudioTrack.MODE_STREAM);
+            byte[] buffer = new byte[bufferSize];
+            audioTrack.play();
+
+            while (mIsPlaying) {
+                int i = 0;
+                while (dis.available() > 0 && i < bufferSize) {
+                    buffer[i] = dis.readByte();
+                    i++;
+                }
+
+                audioTrack.write(buffer, 0, bufferSize);
+
+                if (i < bufferSize) {
+                    audioTrack.stop();
+                    audioTrack.release();
+                    dis.close();
+                    break;
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

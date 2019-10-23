@@ -38,7 +38,7 @@ public class MvSplitComposeActivity extends BaseActivity {
 //        mOriFilePath = oriFile.getAbsolutePath();
         File mediaFile = new File(Environment.getExternalStorageDirectory(), "media.mp4");
         mMediaFilePath = mediaFile.getAbsolutePath();
-        File audioFile = new File(Environment.getExternalStorageDirectory(), "audio");
+        File audioFile = new File(Environment.getExternalStorageDirectory(), "audio.pcm");
         mAudioFilePath = audioFile.getAbsolutePath();
         File combineFile = new File(Environment.getExternalStorageDirectory(), "mv.mp4");
         mCombineFilePath = combineFile.getAbsolutePath();

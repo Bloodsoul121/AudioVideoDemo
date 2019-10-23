@@ -43,4 +43,40 @@
         android:layout_height="wrap_content"
         android:padding="15dp" />
 
+    <View
+        android:background="#e6e6e6"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/edit"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="setOriFilePath"
+            android:text="添加文件名（后缀）" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="playAudioPcm2"
+        android:text="播放 pcm 文件" />
+
 </LinearLayout>

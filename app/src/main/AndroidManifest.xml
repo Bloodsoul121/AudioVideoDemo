@@ -24,7 +24,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".audio_encode_decode.AudioEncodeDecodeActivity"></activity>
+        <activity android:name=".audio_encode_decode.AudioEncodeDecodeActivity"/>
         <activity android:name=".mv_split_compose.MvSplitComposeActivity" />
         <activity android:name=".camera.CameraActivity" />
         <activity android:name=".ar.ARActivity" />
