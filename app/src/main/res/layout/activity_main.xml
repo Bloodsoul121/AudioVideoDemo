@@ -28,4 +28,18 @@
         android:text="使用相机 Camera"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/mv"
+        style="@style/normal_button"
+        android:onClick="clickBtn4"
+        android:text="视频的分离与合成"
+        tools:ignore="HardcodedText" />
+
+    <Button
+        android:id="@+id/audio_encode_decode"
+        style="@style/normal_button"
+        android:onClick="clickBtn5"
+        android:text="音频 编解码 （pcm <==> aav）"
+        tools:ignore="HardcodedText" />
+
 </LinearLayout>
