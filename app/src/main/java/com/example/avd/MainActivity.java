@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.example.avd.ar.ARActivity;
+import com.example.avd.camera.CameraActivity;
 import com.example.avd.mp.MPActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,4 +25,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, ARActivity.class));
     }
 
+    public void clickBtn3(View view) {
+        startActivity(new Intent(this, CameraActivity.class));
+    }
 }

@@ -128,6 +128,7 @@ public class ARActivity extends AppCompatActivity {
                 }
 
                 try {
+                    // 保持数据的原样性读出来写出去
                     DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
                     byte[] buffer = new byte[mBufferSizeInBytes];
 

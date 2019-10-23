@@ -21,4 +21,11 @@
         android:text="录制音频 AudioRecord"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/use_camera"
+        style="@style/normal_button"
+        android:onClick="clickBtn3"
+        android:text="使用相机 Camera"
+        tools:ignore="HardcodedText" />
+
 </LinearLayout>
