@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AudioVideoDemo</string>
+    <string name="app_name">AV</string>
 
     <!--  camera  -->
     <string name="picture">Picture</string>
