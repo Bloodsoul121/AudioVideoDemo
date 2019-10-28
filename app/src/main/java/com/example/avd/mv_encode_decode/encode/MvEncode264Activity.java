@@ -7,12 +7,14 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.example.avd.R;
 import com.example.avd.camera.Camera2BasicFragment;
@@ -29,6 +31,8 @@ public class MvEncode264Activity extends AppCompatActivity {
     MvEncodeCameraView mCameraPreview;
     @BindView(R.id.record)
     Button mRecordBtn;
+    @BindView(R.id.path)
+    TextView mPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,7 @@ public class MvEncode264Activity extends AppCompatActivity {
         setContentView(R.layout.activity_mv_encode264);
         ButterKnife.bind(this);
         mCameraPreview.bindActivity(this);
+        mPath.setText(mCameraPreview.getOutputMediaFile(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO).getAbsolutePath());
     }
 
     public void clickBtn(View view) {

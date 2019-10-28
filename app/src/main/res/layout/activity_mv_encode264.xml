@@ -12,11 +12,18 @@
         android:layout_alignParentTop="true"
         android:layout_gravity="top" />
 
+    <TextView
+        android:id="@+id/path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/camera_preview"
+        android:padding="10dp" />
+
     <Button
         android:id="@+id/record"
         style="@style/normal_button"
         android:layout_height="match_parent"
-        android:layout_below="@+id/camera_preview"
+        android:layout_below="@+id/path"
         android:gravity="center"
         android:onClick="clickBtn"
         android:text="开始录制视频"

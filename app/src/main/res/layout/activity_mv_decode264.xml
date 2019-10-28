@@ -1,9 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".mv_encode_decode.decode.MvDecode264Activity">
 
-</android.support.constraint.ConstraintLayout>
+    <SurfaceView
+        android:id="@+id/surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/path" />
+
+    <TextView
+        android:id="@+id/path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/play"
+        android:padding="10dp" />
+
+    <Button
+        android:id="@+id/play"
+        style="@style/normal_button"
+        android:layout_alignParentBottom="true"
+        android:gravity="center"
+        android:onClick="clickBtn"
+        android:text="开始播放视频"
+        tools:ignore="HardcodedText" />
+
+</RelativeLayout>

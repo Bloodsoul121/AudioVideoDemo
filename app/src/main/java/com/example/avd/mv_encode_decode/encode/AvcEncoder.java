@@ -90,8 +90,6 @@ public class AvcEncoder {
         if (mEncoderThread != null) {
             mEncoderThread.interrupt();
         }
-
-
     }
 
     public boolean isRunning = false;
