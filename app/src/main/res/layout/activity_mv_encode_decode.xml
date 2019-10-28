@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".mv_encode_decode.MvEncodeDecodeActivity">
+
+    <Button
+        style="@style/normal_button"
+        android:onClick="clickBtn1"
+        android:text="（录制视频）编码 -> H.264文件"
+        tools:ignore="HardcodedText" />
+
+    <Button
+        style="@style/normal_button"
+        android:onClick="clickBtn2"
+        android:text="解码H.264文件"
+        tools:ignore="HardcodedText" />
+
+</LinearLayout>
