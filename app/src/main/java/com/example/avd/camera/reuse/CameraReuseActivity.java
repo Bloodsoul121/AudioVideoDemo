@@ -1,4 +1,4 @@
-package com.example.avd.mv_encode_decode.encode;
+package com.example.avd.camera.reuse;
 
 import android.Manifest;
 import android.app.Activity;
@@ -11,8 +11,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.widget.Button;
 
 import com.example.avd.R;
 import com.example.avd.camera.Camera2BasicFragment;
@@ -20,31 +18,22 @@ import com.example.avd.camera.Camera2BasicFragment;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MvEncode264Activity extends AppCompatActivity {
+public class CameraReuseActivity extends AppCompatActivity {
 
     private static final String FRAGMENT_DIALOG = "dialog";
     private static final int REQUEST_CAMERA_PERMISSION = 1;
 
     @BindView(R.id.camera_preview)
-    MvEncodeCameraView mCameraPreview;
-    @BindView(R.id.record)
-    Button mRecordBtn;
+    CameraPreview mCameraPreview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_mv_encode264);
+        setContentView(R.layout.activity_camera_reuse);
         ButterKnife.bind(this);
         mCameraPreview.bindActivity(this);
     }
 
-    public void clickBtn(View view) {
-        if (mCameraPreview.toggleVideo()) {
-            mRecordBtn.setText("停止录制视频");
-        } else {
-            mRecordBtn.setText("开始录制视频");
-        }
-    }
 
     @Override
     protected void onResume() {

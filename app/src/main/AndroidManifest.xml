@@ -23,7 +23,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".mv_encode_decode.encode.MvEncode264Activity"/>
+        <activity android:name=".camera.reuse.CameraReuseActivity"></activity>
+        <activity android:name=".mv_encode_decode.encode.MvEncode264Activity" />
         <activity android:name=".mv_encode_decode.decode.MvDecode264Activity" />
         <activity android:name=".mv_encode_decode.MvEncodeDecodeActivity" />
         <activity android:name=".audio_encode_decode.AudioEncodeDecodeActivity" />

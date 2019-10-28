@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".mv_encode_decode.encode.MvEncode264Activity">
 
-    <com.example.avd.camera.reuse.CameraPreview
+    <com.example.avd.mv_encode_decode.encode.MvEncodeCameraView
         android:id="@+id/camera_preview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
         android:layout_gravity="top" />
 
-</FrameLayout>
+    <Button
+        android:id="@+id/record"
+        style="@style/normal_button"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/camera_preview"
+        android:gravity="center"
+        android:onClick="clickBtn"
+        android:text="开始录制视频"
+        tools:ignore="HardcodedText" />
+
+</RelativeLayout>

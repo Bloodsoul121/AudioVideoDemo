@@ -1,4 +1,4 @@
-package com.example.avd.camera.reuse;
+package com.example.avd.mv_encode_decode.encode;
 
 import android.Manifest;
 import android.app.Activity;
@@ -23,8 +23,10 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -43,17 +45,24 @@ import android.widget.Toast;
 import com.example.avd.R;
 import com.example.avd.camera.Camera2BasicFragment;
 import com.example.avd.camera.base.CompareSizesByArea;
-import com.example.avd.camera.base.ImageSaver;
+import com.example.avd.camera.reuse.CameraPreview;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public class CameraPreview extends TextureView {
+import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
+import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+
+public class MvEncodeCameraView extends TextureView {
 
     private static final String TAG = "CameraPreview";
     private static final String FRAGMENT_DIALOG = "dialog";
@@ -72,6 +81,14 @@ public class CameraPreview extends TextureView {
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
+
+    /*****************************************************/
+    private int mImgReaderState = STATE_IMG_PREVIEW;
+    private static final int STATE_IMG_PREVIEW = 0;
+    private static final int STATE_IMG_RECORD = 1;
+    private AvcEncoder mAvcEncoder;
+    private int mFrameRate = 30;
+    /*****************************************************/
 
     /**
      * An additional thread for running tasks that shouldn't block the UI.
@@ -217,7 +234,49 @@ public class CameraPreview extends TextureView {
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+//            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+
+            // 这里一定要调用reader.acquireNextImage()和img.close方法否则不会一直回掉了
+            Image img = reader.acquireNextImage();
+            switch (mImgReaderState) {
+                case STATE_IMG_PREVIEW:
+                    Log.e(TAG, "mState: STATE_PREVIEW");
+                    if (mAvcEncoder != null) {
+                        mAvcEncoder.stopThread();
+                        mAvcEncoder = null;
+                        Toast.makeText(mContext, "停止录制视频成功", Toast.LENGTH_SHORT).show();
+                    }
+                    break;
+                case STATE_IMG_RECORD:
+                    Log.e(TAG, "mState: STATE_RECORD");
+                    Image.Plane[] planes = img.getPlanes();
+                    byte[] dataYUV = null;
+                    if (planes.length >= 3) {
+                        ByteBuffer bufferY = planes[0].getBuffer();
+                        ByteBuffer bufferU = planes[1].getBuffer();
+                        ByteBuffer bufferV = planes[2].getBuffer();
+                        int lengthY = bufferY.remaining();
+                        int lengthU = bufferU.remaining();
+                        int lengthV = bufferV.remaining();
+                        dataYUV = new byte[lengthY + lengthU + lengthV];
+                        bufferY.get(dataYUV, 0, lengthY);
+                        bufferU.get(dataYUV, lengthY, lengthU);
+                        bufferV.get(dataYUV, lengthY + lengthU, lengthV);
+                    }
+
+                    if (mAvcEncoder == null) {
+                        mAvcEncoder = new AvcEncoder(mPreviewSize.getWidth(),
+                                mPreviewSize.getHeight(), mFrameRate,
+                                getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
+                        mAvcEncoder.startEncoderThread();
+                        Toast.makeText(mContext, "开始录制视频成功", Toast.LENGTH_SHORT).show();
+                    }
+                    mAvcEncoder.putYUVData(dataYUV);
+                    break;
+                default:
+                    break;
+            }
+            img.close();
         }
 
     };
@@ -322,20 +381,21 @@ public class CameraPreview extends TextureView {
     };
 
 
-    public CameraPreview(Context context) {
+    public MvEncodeCameraView(Context context) {
         this(context, null);
     }
 
-    public CameraPreview(Context context, AttributeSet attrs) {
+    public MvEncodeCameraView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public CameraPreview(Context context, AttributeSet attrs, int defStyleAttr) {
+    public MvEncodeCameraView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }
 
     private void init(Context context) {
+        setKeepScreenOn(true);
         this.mContext = context;
         this.mFile = new File(mContext.getExternalFilesDir(null), "pic.jpg");
     }
@@ -399,6 +459,10 @@ public class CameraPreview extends TextureView {
     }
 
     public void onPause() {
+        if (mAvcEncoder != null) {
+            mAvcEncoder.stopThread();
+            mAvcEncoder = null;
+        }
         closeCamera();
         stopBackgroundThread();
     }
@@ -513,13 +577,10 @@ public class CameraPreview extends TextureView {
                 }
 
                 // For still image captures, we use the largest available size.
-                Size largest = Collections.max(
-                        Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
-                        new CompareSizesByArea());
-                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, /*maxImages*/2);
-                mImageReader.setOnImageAvailableListener(
-                        mOnImageAvailableListener, mBackgroundHandler);
+                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
+//                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, /*maxImages*/2);
+                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.YV12, 1);
+                mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.
@@ -591,9 +652,10 @@ public class CameraPreview extends TextureView {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (NullPointerException e) {
+            e.printStackTrace();
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
-            ErrorDialog.newInstance(getString(R.string.camera_error)).show(mActivity.getSupportFragmentManager(), FRAGMENT_DIALOG);
+            CameraPreview.ErrorDialog.newInstance(getString(R.string.camera_error)).show(mActivity.getSupportFragmentManager(), FRAGMENT_DIALOG);
         }
     }
 
@@ -697,6 +759,8 @@ public class CameraPreview extends TextureView {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(surface);
 
+            mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
+
             // Here, we create a CameraCaptureSession for camera preview.
             mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
@@ -711,11 +775,13 @@ public class CameraPreview extends TextureView {
                             // When the session is ready, we start displaying the preview.
                             mCaptureSession = cameraCaptureSession;
                             try {
-                                // Auto focus should be continuous for camera preview.
-                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                                        CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                                // Flash is automatically enabled when necessary.
-                                setAutoFlash(mPreviewRequestBuilder);
+//                                // Auto focus should be continuous for camera preview.
+//                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+//                                // Flash is automatically enabled when necessary.
+//                                setAutoFlash(mPreviewRequestBuilder);
+
+                                //设置相机的控制模式为自动，方法具体含义点进去（auto-exposure, auto-white-balance, auto-focus）
+                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
 
                                 // Finally, we start displaying the camera preview.
                                 mPreviewRequest = mPreviewRequestBuilder.build();
@@ -917,6 +983,53 @@ public class CameraPreview extends TextureView {
                     .create();
         }
 
+    }
+
+    public boolean toggleVideo() {
+        if (mImgReaderState == STATE_PREVIEW) {
+            mImgReaderState = STATE_IMG_RECORD;
+            return true;
+        } else {
+            mImgReaderState = STATE_IMG_PREVIEW;
+            return false;
+        }
+    }
+
+    /**
+     * 获取输出照片视频路径
+     */
+    public File getOutputMediaFile(int mediaType) {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String fileName = null;
+        File storageDir = null;
+        if (mediaType == MEDIA_TYPE_IMAGE) {
+            fileName = "JPEG_" + timeStamp + "_";
+            storageDir = mContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        } else if (mediaType == MEDIA_TYPE_VIDEO) {
+            fileName = "MP4_" + timeStamp + "_";
+            storageDir = mContext.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
+        }
+
+        // Create the storage directory if it does not exist
+        if (!storageDir.exists()) {
+            if (!storageDir.mkdirs()) {
+                Log.d(TAG, "failed to create directory");
+                return null;
+            }
+        }
+
+        File file = null;
+        try {
+            file = File.createTempFile(
+                    fileName,  /* prefix */
+                    (mediaType == MEDIA_TYPE_IMAGE) ? ".jpg" : ".h264",         /* suffix */
+                    storageDir      /* directory */
+            );
+            Log.d(TAG, "getOutputMediaFile: absolutePath==" + file.getAbsolutePath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return file;
     }
 
 }

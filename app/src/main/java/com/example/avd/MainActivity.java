@@ -8,6 +8,7 @@ import android.view.View;
 import com.example.avd.ar.ARActivity;
 import com.example.avd.audio_encode_decode.AudioEncodeDecodeActivity;
 import com.example.avd.camera.CameraActivity;
+import com.example.avd.camera.reuse.CameraReuseActivity;
 import com.example.avd.mp.MPActivity;
 import com.example.avd.mv_encode_decode.MvEncodeDecodeActivity;
 import com.example.avd.mv_split_compose.MvSplitComposeActivity;
@@ -42,5 +43,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void clickBtn6(View view) {
         startActivity(new Intent(this, MvEncodeDecodeActivity.class));
+    }
+
+    public void clickBtn7(View view) {
+        startActivity(new Intent(this, CameraReuseActivity.class));
     }
 }

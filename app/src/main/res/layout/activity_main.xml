@@ -29,6 +29,13 @@
         tools:ignore="HardcodedText" />
 
     <Button
+        android:id="@+id/reuse_camera"
+        style="@style/normal_button"
+        android:onClick="clickBtn7"
+        android:text="复用相机 CameraPreview"
+        tools:ignore="HardcodedText" />
+
+    <Button
         android:id="@+id/mv"
         style="@style/normal_button"
         android:onClick="clickBtn4"
