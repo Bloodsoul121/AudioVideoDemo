@@ -17,9 +17,9 @@
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
-        android:icon="@drawable/av"
+        android:icon="@drawable/share"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/av"
+        android:roundIcon="@drawable/share"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">

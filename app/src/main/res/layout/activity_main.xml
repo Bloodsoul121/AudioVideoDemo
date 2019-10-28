@@ -42,4 +42,11 @@
         android:text="音频 编解码"
         tools:ignore="HardcodedText" />
 
+    <Button
+        android:id="@+id/mv_encode_decode"
+        style="@style/normal_button"
+        android:onClick="clickBtn6"
+        android:text="视频 H.264 硬编解"
+        tools:ignore="HardcodedText" />
+
 </LinearLayout>
