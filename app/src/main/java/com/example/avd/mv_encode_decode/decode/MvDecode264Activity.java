@@ -1,7 +1,5 @@
 package com.example.avd.mv_encode_decode.decode;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
@@ -14,11 +12,9 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.avd.BaseActivity;
 import com.example.avd.R;
-import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,7 +28,6 @@ import java.nio.ByteBuffer;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.functions.Consumer;
 
 public class MvDecode264Activity extends BaseActivity {
 
@@ -48,7 +43,7 @@ public class MvDecode264Activity extends BaseActivity {
     private final static String H264_FILE = SD_PATH + "/H264.h264";
 
     private boolean mStopFlag = false;
-    private boolean UseSPSandPPS = false;
+    private boolean mIsUseSPSandPPS = false;
     private MediaCodec mMediaCodec;
     private Thread mDecodeThread;
     private DataInputStream mInputStream;
@@ -59,34 +54,21 @@ public class MvDecode264Activity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mv_decode264);
         ButterKnife.bind(this);
-        requestPermissions();
         initMediaCodec();
         mFilePath = H264_FILE;
         mPath.setText(mFilePath);
-    }
-
-    @SuppressLint("CheckResult")
-    public void requestPermissions() {
-        RxPermissions rxPermissions = new RxPermissions(this);
-        rxPermissions.request(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-        ).subscribe(new Consumer<Boolean>() {
-            @Override
-            public void accept(Boolean aBoolean) {
-                if (aBoolean) {
-                    Toast.makeText(MvDecode264Activity.this, "accept", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MvDecode264Activity.this, "deny", Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-            }
-        });
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         stopDecodingThread();
+    }
+
+    @Override
+    public void onBackPressed() {
+        stopDecodingThread();
+        super.onBackPressed();
     }
 
     @Override
@@ -143,7 +125,7 @@ public class MvDecode264Activity extends BaseActivity {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                 try {
-                    //创建编码器
+                    //创建解码器
                     mMediaCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -158,7 +140,7 @@ public class MvDecode264Activity extends BaseActivity {
                 00 00 00 01 61    (P帧)*/
 
                 //获取H264文件中的pps和sps数据
-                if (UseSPSandPPS) {
+                if (mIsUseSPSandPPS) {
                     byte[] header_sps = {0, 0, 0, 1, 67, 66, 0, 42, (byte) 149, (byte) 168, 30, 0, (byte) 137, (byte) 249, 102, (byte) 224, 32, 32, 32, 64};
                     byte[] header_pps = {0, 0, 0, 1, 68, (byte) 206, 60, (byte) 128, 0, 0, 0, 1, 6, (byte) 229, 1, (byte) 151, (byte) 128};
                     mediaFormat.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
@@ -193,15 +175,22 @@ public class MvDecode264Activity extends BaseActivity {
         }
         if (mDecodeThread == null) {
             mDecodeThread = new Thread(new DecodeThread());
+            mDecodeThread.start();
         }
-        mDecodeThread.start();
     }
 
     private void stopDecodingThread() {
         mStopFlag = true;
         if (mDecodeThread != null) {
             mDecodeThread.interrupt();
+            try {
+                mDecodeThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            mDecodeThread = null;
         }
+        stopEncoder();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)

@@ -655,7 +655,7 @@ public class MvEncodeCameraView extends TextureView {
             e.printStackTrace();
             // Currently an NPE is thrown when the Camera2API is used but not supported on the
             // device this code runs.
-            CameraPreview.ErrorDialog.newInstance(getString(R.string.camera_error)).show(mActivity.getSupportFragmentManager(), FRAGMENT_DIALOG);
+            ErrorDialog.newInstance(getString(R.string.camera_error)).show(mActivity.getSupportFragmentManager(), FRAGMENT_DIALOG);
         }
     }
 
