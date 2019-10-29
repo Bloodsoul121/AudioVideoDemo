@@ -8,20 +8,6 @@
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/media_player"
-        style="@style/normal_button"
-        android:onClick="clickBtn1"
-        android:text="播放音频 MediaPlayer"
-        tools:ignore="HardcodedText" />
-
-    <Button
-        android:id="@+id/audio_record"
-        style="@style/normal_button"
-        android:onClick="clickBtn2"
-        android:text="录制音频 AudioRecord"
-        tools:ignore="HardcodedText" />
-
-    <Button
         android:id="@+id/use_camera"
         style="@style/normal_button"
         android:onClick="clickBtn3"
@@ -36,10 +22,17 @@
         tools:ignore="HardcodedText" />
 
     <Button
-        android:id="@+id/mv"
+        android:id="@+id/media_player"
         style="@style/normal_button"
-        android:onClick="clickBtn4"
-        android:text="视频的分离与合成"
+        android:onClick="clickBtn1"
+        android:text="播放音频 MediaPlayer"
+        tools:ignore="HardcodedText" />
+
+    <Button
+        android:id="@+id/audio_record"
+        style="@style/normal_button"
+        android:onClick="clickBtn2"
+        android:text="录制音频 AudioRecord"
         tools:ignore="HardcodedText" />
 
     <Button
@@ -47,6 +40,13 @@
         style="@style/normal_button"
         android:onClick="clickBtn5"
         android:text="音频 编解码"
+        tools:ignore="HardcodedText" />
+
+    <Button
+        android:id="@+id/mv"
+        style="@style/normal_button"
+        android:onClick="clickBtn4"
+        android:text="视频的分离与合成"
         tools:ignore="HardcodedText" />
 
     <Button

@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,39 +18,47 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MvSplitComposeActivity extends BaseActivity {
+
+    @BindView(R.id.ori_path)
+    TextView mOriPath;
+    @BindView(R.id.path)
+    TextView mPath;
 
     private String mOriFilePath; // 原始文件
     private String mMediaFilePath; // 分离后的视频
     private String mAudioFilePath; // 分离后的音频
     private String mCombineFilePath; // 重新合成的音视频
 
-    private TextView mPathTv;
-    private EditText mEdit;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mv_split_compose);
+        ButterKnife.bind(this);
 
-//        File oriFile = new File(Environment.getExternalStorageDirectory(), "aaa.3gp");
-//        mOriFilePath = oriFile.getAbsolutePath();
-        File mediaFile = new File(Environment.getExternalStorageDirectory(), "media.mp4");
+        File mediaFile = new File(Environment.getExternalStorageDirectory(), "mv_split_media.mp4");
         mMediaFilePath = mediaFile.getAbsolutePath();
-        File audioFile = new File(Environment.getExternalStorageDirectory(), "audio.pcm");
+        File audioFile = new File(Environment.getExternalStorageDirectory(), "mv_split_audio.pcm");
         mAudioFilePath = audioFile.getAbsolutePath();
-        File combineFile = new File(Environment.getExternalStorageDirectory(), "mv.mp4");
+        File combineFile = new File(Environment.getExternalStorageDirectory(), "mv_compose.mp4");
         mCombineFilePath = combineFile.getAbsolutePath();
 
-        mEdit = findViewById(R.id.edit);
-        mPathTv = findViewById(R.id.path);
-        mPathTv.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
+        mOriPath.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
+        mPath.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
+    }
+
+    @Override
+    protected void onResultSystemSelectedFilePath(String filePath) {
+        super.onResultSystemSelectedFilePath(filePath);
+        mOriFilePath = filePath;
+        mOriPath.setText(filePath);
     }
 
     public void setOriFilePath(View view) {
-        File oriFile = new File(Environment.getExternalStorageDirectory(), mEdit.getText().toString());
-        mOriFilePath = oriFile.getAbsolutePath();
-        mPathTv.setText(mOriFilePath);
+        requestSystemFilePath();
     }
 
     /**
@@ -139,7 +146,7 @@ public class MvSplitComposeActivity extends BaseActivity {
             mediaMuxer.release();
             mediaExtractor.release();
 
-            mPathTv.setText(mMediaFilePath);
+            mPath.setText(mMediaFilePath);
             Toast.makeText(this, "extrac media done", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
@@ -216,7 +223,7 @@ public class MvSplitComposeActivity extends BaseActivity {
             mediaMuxer.release();
             mediaExtractor.release();
 
-            mPathTv.setText(mAudioFilePath);
+            mPath.setText(mAudioFilePath);
             Toast.makeText(this, "extract audio done", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {
@@ -232,6 +239,18 @@ public class MvSplitComposeActivity extends BaseActivity {
 
         if (TextUtils.isEmpty(mMediaFilePath) || TextUtils.isEmpty(mAudioFilePath)) {
             toast("media file path or audio file path is null");
+            return;
+        }
+
+        File media = new File(mMediaFilePath);
+        if (!media.exists()) {
+            toast("media is not exist");
+            return;
+        }
+
+        File audio = new File(mAudioFilePath);
+        if (!audio.exists()) {
+            toast("audio is not exist");
             return;
         }
 
@@ -336,7 +355,7 @@ public class MvSplitComposeActivity extends BaseActivity {
             videoExtractor.release();
             audioExtractor.release();
 
-            mPathTv.setText(mCombineFilePath);
+            mPath.setText(mCombineFilePath);
             Toast.makeText(this, "combine video done", Toast.LENGTH_SHORT).show();
 
         } catch (IOException e) {

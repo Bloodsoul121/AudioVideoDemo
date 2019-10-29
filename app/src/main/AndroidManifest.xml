@@ -30,7 +30,7 @@
         <activity android:name=".audio_encode_decode.AudioEncodeDecodeActivity" />
         <activity android:name=".mv_split_compose.MvSplitComposeActivity" />
         <activity android:name=".camera.CameraActivity" />
-        <activity android:name=".ar.ARActivity" />
+        <activity android:name=".audio_record.AudioRecordActivity" />
         <activity android:name=".mp.MPActivity" />
         <activity android:name=".mp.android.AndroidMPActivity" />
         <activity android:name=".MainActivity">

@@ -6,24 +6,17 @@
     android:orientation="vertical"
     tools:context=".mv_split_compose.MvSplitComposeActivity">
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <Button
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:onClick="setOriFilePath"
+        android:text="添加文件名" />
 
-        <EditText
-            android:id="@+id/edit"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="setOriFilePath"
-            android:text="添加文件名（后缀）" />
-
-    </LinearLayout>
+    <TextView
+        android:id="@+id/ori_path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp" />
 
     <Button
         android:layout_width="match_parent"

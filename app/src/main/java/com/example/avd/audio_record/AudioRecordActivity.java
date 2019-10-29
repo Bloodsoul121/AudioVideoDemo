@@ -1,4 +1,4 @@
-package com.example.avd.ar;
+package com.example.avd.audio_record;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -12,7 +12,6 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,16 +34,16 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.functions.Consumer;
 
-public class ARActivity extends BaseActivity {
+public class AudioRecordActivity extends BaseActivity {
 
-    private static final String TAG = ARActivity.class.getSimpleName();
+    private static final String TAG = AudioRecordActivity.class.getSimpleName();
 
     @BindView(R.id.status)
     TextView mStatus;
-    @BindView(R.id.edit)
-    EditText mEdit;
-    @BindView(R.id.path)
-    TextView mPath;
+    @BindView(R.id.dir_path)
+    TextView mDirPath;
+    @BindView(R.id.ori_path)
+    TextView mPlayPath;
 
     // 初始化配置
     private int mAudioSource;
@@ -59,6 +58,7 @@ public class ARActivity extends BaseActivity {
     private String mMavFileName = "audio.mav";
     private boolean mIsRecording;
     private boolean mIsPlaying;
+    private String mPlayFilePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +67,7 @@ public class ARActivity extends BaseActivity {
         ButterKnife.bind(this);
         requestPermissions(); // 需要录制权限
 
-        mPath.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
+        mPlayPath.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
     }
 
     @Override
@@ -86,15 +86,22 @@ public class ARActivity extends BaseActivity {
             @Override
             public void accept(Boolean aBoolean) {
                 if (aBoolean) {
-                    Toast.makeText(ARActivity.this, "accept", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AudioRecordActivity.this, "accept", Toast.LENGTH_SHORT).show();
                     initRecord();
                     initBaseDir();
                 } else {
-                    Toast.makeText(ARActivity.this, "deny", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AudioRecordActivity.this, "deny", Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }
         });
+    }
+
+    @Override
+    protected void onResultSystemSelectedFilePath(String filePath) {
+        super.onResultSystemSelectedFilePath(filePath);
+        mPlayFilePath = filePath;
+        mPlayPath.setText(filePath);
     }
 
     private void initRecord() {
@@ -111,17 +118,20 @@ public class ARActivity extends BaseActivity {
         mAudioRecord = new AudioRecord(mAudioSource, mSampleRateInHz, mChannelConfig, mAudioFormat, mBufferSizeInBytes);
     }
 
+    @SuppressLint("SetTextI18n")
     private void initBaseDir() {
         mFileDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/AudioRecord");
         if (!mFileDir.exists()) {
             boolean mkdirs = mFileDir.mkdirs();
             Log.i(TAG, "mkdirs " + mkdirs);
         }
+        mDirPath.setText("存储目录：" + mFileDir.getAbsolutePath());
     }
 
     public void startRecord(View view) {
         mIsRecording = true;
         new Thread(new Runnable() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void run() {
 
@@ -167,6 +177,8 @@ public class ARActivity extends BaseActivity {
                     mAudioRecord.stop();
                     dos.close();
 
+                    mStatus.setText("录制完成 : " + file.getAbsolutePath());
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -177,7 +189,6 @@ public class ARActivity extends BaseActivity {
 
     public void stopRecord(View view) {
         mIsRecording = false;
-        mStatus.setText("停止录制");
     }
 
     public void playAudioPcm(View view) {
@@ -212,6 +223,7 @@ public class ARActivity extends BaseActivity {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     public void transformPCM2MAV(View view) {
         File pcm = new File(mFileDir, mPcmFileName);
         File mav = new File(mFileDir, mMavFileName);
@@ -235,7 +247,7 @@ public class ARActivity extends BaseActivity {
             in.close();
             out.close();
 
-            mStatus.setText("转换成功");
+            mStatus.setText("转换成功 : " + mav.getAbsolutePath());
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -400,13 +412,11 @@ public class ARActivity extends BaseActivity {
     /******************************** 播放指定PCM文件 **********************************/
 
     public void setOriFilePath(View view) {
-        File oriFile = new File(Environment.getExternalStorageDirectory(), mEdit.getText().toString());
-        String pcmFilePath = oriFile.getAbsolutePath();
-        mPath.setText(pcmFilePath);
+        requestSystemFilePath();
     }
 
     public void playAudioPcm2(View view) {
-        String fileName = mEdit.getText().toString();
+        String fileName = mPlayFilePath;
         if (TextUtils.isEmpty(fileName)) {
             toast("file name is null");
             return;

@@ -2,62 +2,70 @@ package com.example.avd.audio_encode_decode;
 
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
-import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.avd.BaseActivity;
 import com.example.avd.R;
 
-import java.io.File;
 import java.io.IOException;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class AudioEncodeDecodeActivity extends BaseActivity {
 
-    private String mOriFilePath; // 原始文件
+    @BindView(R.id.ori_path)
+    TextView mOriPath;
+    @BindView(R.id.path)
+    TextView mPath;
 
-    private TextView mPathTv;
-    private EditText mEdit;
+    private String mOriFilePath; // 原始文件
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_encode_decode);
+        ButterKnife.bind(this);
 
-        mEdit = findViewById(R.id.edit);
-        mPathTv = findViewById(R.id.path);
-        mPathTv.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
+        mOriPath.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
+        mPath.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
+    }
+
+    @Override
+    protected void onResultSystemSelectedFilePath(String filePath) {
+        super.onResultSystemSelectedFilePath(filePath);
+        mOriFilePath = filePath;
+        mOriPath.setText(filePath);
     }
 
     public void setOriFilePath(View view) {
-        File oriFile = new File(Environment.getExternalStorageDirectory(), mEdit.getText().toString());
-        mOriFilePath = oriFile.getAbsolutePath();
-        mPathTv.setText(mOriFilePath);
+        requestSystemFilePath();
     }
 
     public void decode(View view) {
         String audioPath = mOriFilePath;
-        String audioSavePath = Environment.getExternalStorageDirectory() + "/aaa.pcm";
+        String audioSavePath = Environment.getExternalStorageDirectory() + "/audio_decode.pcm";
         getPCMFromAudio(audioPath, audioSavePath);
     }
 
     public void encode(View view) {
-        String pcmPath = Environment.getExternalStorageDirectory() + "/aaa.pcm";
-        String audioPath = Environment.getExternalStorageDirectory() + "/aaa.m4a";
+        String pcmPath = Environment.getExternalStorageDirectory() + "/audio_decode.pcm";
+        String audioPath = Environment.getExternalStorageDirectory() + "/audio_encode.m4a";
         pcmToAudio(pcmPath, audioPath);
     }
 
     /**
      * 将音频文件解码成原始的PCM数据
-     * @param audioPath         MP3文件目录
-     * @param audioSavePath     pcm文件保存位置
+     *
+     * @param audioPath     MP3文件目录
+     * @param audioSavePath pcm文件保存位置
      */
-    public void getPCMFromAudio(String audioPath, final String audioSavePath){
+    public void getPCMFromAudio(String audioPath, final String audioSavePath) {
         if (TextUtils.isEmpty(audioPath)) {
             Toast.makeText(AudioEncodeDecodeActivity.this, "audio path is null", Toast.LENGTH_SHORT).show();
             return;
@@ -86,7 +94,7 @@ public class AudioEncodeDecodeActivity extends BaseActivity {
                 new Thread(new AudioDecodeRunnable(mediaExtractor, audioTrack, audioSavePath, new DecodeOverListener() {
                     @Override
                     public void decodeOver() {
-                        mPathTv.setText(audioSavePath);
+                        mPath.setText(audioSavePath);
                         toast("decode over");
                     }
 
@@ -112,7 +120,7 @@ public class AudioEncodeDecodeActivity extends BaseActivity {
             @Override
             public void decodeOver() {
                 toast("encode over");
-                mPathTv.setText(audioPath);
+                mPath.setText(audioPath);
             }
 
             @Override
@@ -125,13 +133,15 @@ public class AudioEncodeDecodeActivity extends BaseActivity {
     /**
      * 音频解码监听器：监听是否解码成功
      */
-    public interface AudioDecodeListener{
+    public interface AudioDecodeListener {
         void decodeOver();
+
         void decodeFail();
     }
 
-    public interface DecodeOverListener{
+    public interface DecodeOverListener {
         void decodeOver();
+
         void decodeFail();
     }
 
