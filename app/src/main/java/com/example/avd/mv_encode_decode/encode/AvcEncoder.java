@@ -130,6 +130,7 @@ public class AvcEncoder {
                         }
 
                         if (input != null) {
+                            // 获取输入队列空闲数组下标
                             int inputBufferIndex = mMediaCodec.dequeueInputBuffer(-1);
                             if (inputBufferIndex >= 0) {
                                 pts = computePresentationTime(generateIndex);
@@ -140,6 +141,7 @@ public class AvcEncoder {
                                 generateIndex += 1;
                             }
 
+                            // 写入到本地文件
                             MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
                             int outputBufferIndex = mMediaCodec.dequeueOutputBuffer(bufferInfo, TIMEOUT_USEC);
                             while (outputBufferIndex >= 0) {
