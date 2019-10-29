@@ -579,7 +579,7 @@ public class MvEncodeCameraView extends TextureView {
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
 //                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, /*maxImages*/2);
-                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.YV12, 1);
+                mImageReader = ImageReader.newInstance(width, height, ImageFormat.YV12, 1);
                 mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
@@ -793,7 +793,7 @@ public class MvEncodeCameraView extends TextureView {
 
                         @Override
                         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            showToast("Failed");
+                            showToast("onConfigureFailed");
                         }
                     }, null
             );
@@ -1020,12 +1020,19 @@ public class MvEncodeCameraView extends TextureView {
 
         File file = null;
         try {
-            file = File.createTempFile(
-                    fileName,  /* prefix */
-                    (mediaType == MEDIA_TYPE_IMAGE) ? ".jpg" : ".h264",         /* suffix */
-                    storageDir      /* directory */
-            );
-            Log.d(TAG, "getOutputMediaFile: absolutePath==" + file.getAbsolutePath());
+//            file = File.createTempFile(
+//                    fileName,  /* prefix */
+//                    (mediaType == MEDIA_TYPE_IMAGE) ? ".jpg" : ".h264",         /* suffix */
+//                    storageDir      /* directory */
+//            );
+
+            file = new File(storageDir, fileName.substring(0, fileName.length() - 1) + ((mediaType == MEDIA_TYPE_IMAGE) ? ".jpg" : ".h264"));
+            if (file.exists()) {
+                file.delete();
+            }
+            file.createNewFile();
+
+            Log.d(TAG, "getOutputMediaFile: absolutePath == " + file.getAbsolutePath());
         } catch (IOException e) {
             e.printStackTrace();
         }

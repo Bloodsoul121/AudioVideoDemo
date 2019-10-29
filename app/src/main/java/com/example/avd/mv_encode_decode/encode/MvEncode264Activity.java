@@ -1,6 +1,7 @@
 package com.example.avd.mv_encode_decode.encode;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -34,13 +35,14 @@ public class MvEncode264Activity extends AppCompatActivity {
     @BindView(R.id.path)
     TextView mPath;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mv_encode264);
         ButterKnife.bind(this);
         mCameraPreview.bindActivity(this);
-        mPath.setText(mCameraPreview.getOutputMediaFile(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO).getAbsolutePath());
+        mPath.setText("/storage/emulated/0/Android/data/com.example.avd/files/Movies/");
     }
 
     public void clickBtn(View view) {

@@ -38,7 +38,7 @@ public class MvEncodeDecodeActivity extends BaseActivity {
     public void requestPermissions() {
         RxPermissions rxPermissions = new RxPermissions(this);
         rxPermissions.request(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA
         ).subscribe(new Consumer<Boolean>() {
             @Override
             public void accept(Boolean aBoolean) {
