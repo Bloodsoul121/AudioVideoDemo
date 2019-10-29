@@ -28,7 +28,7 @@ public class AvcEncoder {
     private int mFrameRate;
 
     private File mOutFile;
-    //true--Camera的预览数据编码
+    // true--Camera的预览数据编码
     // false--Camera2的预览数据编码
     private boolean mIsCamera;
 

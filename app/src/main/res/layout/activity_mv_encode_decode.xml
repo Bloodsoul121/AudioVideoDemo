@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".mv_encode_decode.MvEncodeDecodeActivity">
 
     <Button
@@ -16,6 +16,12 @@
         style="@style/normal_button"
         android:onClick="clickBtn2"
         android:text="解码H.264文件"
+        tools:ignore="HardcodedText" />
+
+    <TextView
+        android:id="@+id/default_save_path"
+        style="@style/normal_button"
+        android:text="默认存储路径"
         tools:ignore="HardcodedText" />
 
 </LinearLayout>

@@ -9,7 +9,16 @@
         android:id="@+id/surface_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/path" />
+        android:layout_above="@+id/select_file_path" />
+
+    <Button
+        android:id="@+id/select_file_path"
+        style="@style/normal_button"
+        android:layout_above="@+id/path"
+        android:gravity="center"
+        android:onClick="selectFilePath"
+        android:text="选择文件"
+        tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/path"
@@ -21,10 +30,19 @@
     <Button
         android:id="@+id/play"
         style="@style/normal_button"
+        android:layout_above="@+id/stop"
+        android:gravity="center"
+        android:onClick="clickBtn1"
+        android:text="开始播放视频"
+        tools:ignore="HardcodedText" />
+
+    <Button
+        android:id="@+id/stop"
+        style="@style/normal_button"
         android:layout_alignParentBottom="true"
         android:gravity="center"
-        android:onClick="clickBtn"
-        android:text="开始播放视频"
+        android:onClick="clickBtn2"
+        android:text="停止播放视频"
         tools:ignore="HardcodedText" />
 
 </RelativeLayout>

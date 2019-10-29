@@ -51,8 +51,8 @@ public class MvDecode264Activity extends BaseActivity {
     private boolean UseSPSandPPS = false;
     private MediaCodec mMediaCodec;
     private Thread mDecodeThread;
-    private SurfaceHolder mSurfaceHolder;
     private DataInputStream mInputStream;
+    private String mFilePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +61,8 @@ public class MvDecode264Activity extends BaseActivity {
         ButterKnife.bind(this);
         requestPermissions();
         initMediaCodec();
-        mPath.setText(H264_FILE);
+        mFilePath = H264_FILE;
+        mPath.setText(mFilePath);
     }
 
     @SuppressLint("CheckResult")
@@ -88,9 +89,24 @@ public class MvDecode264Activity extends BaseActivity {
         stopDecodingThread();
     }
 
-    public void clickBtn(View view) {
+    @Override
+    protected void onResultSystemSelectedFilePath(String filePath) {
+        super.onResultSystemSelectedFilePath(filePath);
+        mFilePath = filePath;
+        mPath.setText(filePath);
+    }
+
+    public void selectFilePath(View view) {
+        requestSystemFilePath();
+    }
+
+    public void clickBtn1(View view) {
         getFileInputStream();
         startDecodingThread();
+    }
+
+    public void clickBtn2(View view) {
+        stopDecodingThread();
     }
 
     /**
@@ -98,7 +114,7 @@ public class MvDecode264Activity extends BaseActivity {
      */
     public void getFileInputStream() {
         try {
-            File file = new File(H264_FILE);
+            File file = new File(mFilePath);
             Log.i(TAG, file.getAbsolutePath());
             if (!file.exists()) {
                 toast("file is not exist");
@@ -122,8 +138,8 @@ public class MvDecode264Activity extends BaseActivity {
      */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void initMediaCodec() {
-        mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
+        SurfaceHolder surfaceHolder = mSurfaceView.getHolder();
+        surfaceHolder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                 try {
@@ -152,6 +168,7 @@ public class MvDecode264Activity extends BaseActivity {
                 //设置帧率
                 mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 40);
                 mMediaCodec.configure(mediaFormat, holder.getSurface(), null, 0);
+                mMediaCodec.start();
             }
 
             @Override
@@ -174,7 +191,6 @@ public class MvDecode264Activity extends BaseActivity {
         if (mInputStream == null) {
             return;
         }
-        mMediaCodec.start();
         if (mDecodeThread == null) {
             mDecodeThread = new Thread(new DecodeThread());
         }
@@ -268,6 +284,9 @@ public class MvDecode264Activity extends BaseActivity {
                         }
                     }
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    break;
+                } catch (IllegalStateException e) {
                     e.printStackTrace();
                     break;
                 }
