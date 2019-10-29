@@ -43,7 +43,7 @@ public class MvDecode264Activity extends BaseActivity {
     private final static String H264_FILE = SD_PATH + "/H264.h264";
 
     private boolean mStopFlag = false;
-    private boolean mIsUseSPSandPPS = false;
+    private boolean mIsUseSPSandPPS = true;
     private MediaCodec mMediaCodec;
     private Thread mDecodeThread;
     private DataInputStream mInputStream;
@@ -170,6 +170,10 @@ public class MvDecode264Activity extends BaseActivity {
      */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void startDecodingThread() {
+        if (mMediaCodec == null) {
+            toast("MediaCodec is null");
+            return;
+        }
         if (mInputStream == null) {
             return;
         }
