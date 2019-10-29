@@ -16,11 +16,13 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
 public class AvcEncoder {
+
     private static final String TAG = "AvcEncoder";
+
     private int TIMEOUT_USEC = 12000;
     private int mYuvQueueSize = 10;
 
-    public ArrayBlockingQueue<byte[]> mYuvQueue = new ArrayBlockingQueue<>(mYuvQueueSize);
+    private ArrayBlockingQueue<byte[]> mYuvQueue = new ArrayBlockingQueue<>(mYuvQueueSize);
 
     private MediaCodec mMediaCodec;
     private int mWidth;
@@ -28,15 +30,18 @@ public class AvcEncoder {
     private int mFrameRate;
 
     private File mOutFile;
+
     // true--Camera的预览数据编码
     // false--Camera2的预览数据编码
     private boolean mIsCamera;
 
-    public byte[] mConfigByte;
+    private byte[] mConfigByte;
 
     private Thread mEncoderThread;
 
-    public AvcEncoder(int width, int height, int frameRate, File outFile, boolean isCamera) {
+    private boolean isRunning = false;
+
+    AvcEncoder(int width, int height, int frameRate, File outFile, boolean isCamera) {
         mIsCamera = isCamera;
         mWidth = width;
         mHeight = height;
@@ -92,8 +97,6 @@ public class AvcEncoder {
         }
     }
 
-    public boolean isRunning = false;
-
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void startEncoderThread() {
         mEncoderThread = new Thread(new Runnable() {
@@ -119,6 +122,11 @@ public class AvcEncoder {
                                 YV12toNV12(input, yuv420sp, mWidth, mHeight);
                                 input = yuv420sp;
                             }
+                        }
+
+                        if (input != null) {
+                            // 尝试旋转90度
+                            input = rotateYUV240SP(input, mWidth, mHeight);
                         }
 
                         if (input != null) {
@@ -220,4 +228,32 @@ public class AvcEncoder {
     private long computePresentationTime(long frameIndex) {
         return 132 + frameIndex * 1000000 / mFrameRate;
     }
+
+    /**
+     * 将视频流先旋转90度，否则录制的视频是横向的
+     */
+    private byte[] rotateYUV240SP(byte[] src, int width, int height) {
+        byte[] des = new byte[src.length];
+
+        int wh = width * height;
+        //旋转Y
+        int k = 0;
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                des[k] = src[width * j + i];
+                k++;
+            }
+        }
+
+        for (int i = 0; i < width; i += 2) {
+            for (int j = 0; j < height / 2; j++) {
+                des[k] = src[wh + width * j + i];
+                des[k + 1] = src[wh + width * j + i + 1];
+                k += 2;
+            }
+        }
+
+        return des;
+    }
+
 }

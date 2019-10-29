@@ -45,7 +45,6 @@ import android.widget.Toast;
 import com.example.avd.R;
 import com.example.avd.camera.Camera2BasicFragment;
 import com.example.avd.camera.base.CompareSizesByArea;
-import com.example.avd.camera.reuse.CameraPreview;
 
 import java.io.File;
 import java.io.IOException;

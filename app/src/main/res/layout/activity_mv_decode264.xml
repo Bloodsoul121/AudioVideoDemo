@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,41 +8,45 @@
     <SurfaceView
         android:id="@+id/surface_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/select_file_path" />
+        android:layout_height="450dp" />
 
-    <Button
-        android:id="@+id/select_file_path"
-        style="@style/normal_button"
-        android:layout_above="@+id/path"
-        android:gravity="center"
-        android:onClick="selectFilePath"
-        android:text="选择文件"
-        tools:ignore="HardcodedText" />
-
-    <TextView
-        android:id="@+id/path"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/play"
-        android:padding="10dp" />
+        android:layout_gravity="bottom"
+        android:background="#ffffff"
+        android:orientation="vertical">
 
-    <Button
-        android:id="@+id/play"
-        style="@style/normal_button"
-        android:layout_above="@+id/stop"
-        android:gravity="center"
-        android:onClick="clickBtn1"
-        android:text="开始播放视频"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/select_file_path"
+            style="@style/normal_button"
+            android:gravity="center"
+            android:onClick="selectFilePath"
+            android:text="选择文件"
+            tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/stop"
-        style="@style/normal_button"
-        android:layout_alignParentBottom="true"
-        android:gravity="center"
-        android:onClick="clickBtn2"
-        android:text="停止播放视频"
-        tools:ignore="HardcodedText" />
+        <TextView
+            android:id="@+id/path"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp" />
 
-</RelativeLayout>
+        <Button
+            android:id="@+id/play"
+            style="@style/normal_button"
+            android:gravity="center"
+            android:onClick="clickBtn1"
+            android:text="开始播放视频"
+            tools:ignore="HardcodedText" />
+
+        <Button
+            android:id="@+id/stop"
+            style="@style/normal_button"
+            android:gravity="center"
+            android:onClick="clickBtn2"
+            android:text="停止播放视频"
+            tools:ignore="HardcodedText" />
+
+    </LinearLayout>
+
+</FrameLayout>
