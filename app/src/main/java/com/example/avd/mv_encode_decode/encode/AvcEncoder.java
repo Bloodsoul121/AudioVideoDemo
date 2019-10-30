@@ -127,6 +127,7 @@ public class AvcEncoder {
                         if (input != null) {
                             // 尝试旋转90度
                             input = rotateYUV240SP(input, mWidth, mHeight);
+//                            input = rotateYUV240SP2(input, mWidth, mHeight);
                         }
 
                         if (input != null) {
@@ -224,6 +225,17 @@ public class AvcEncoder {
         }
     }
 
+    private void swapYV12toNV12(byte[] yv12bytes, byte[] nv12bytes, int width, int height) {
+        int nLenY = width * height;
+        int nLenU = nLenY / 4;
+
+        System.arraycopy(yv12bytes, 0, nv12bytes, 0, width * height);
+        for (int i = 0; i < nLenU; i++) {
+            nv12bytes[nLenY + 2 * i + 1] = yv12bytes[nLenY + i];
+            nv12bytes[nLenY + 2 * i] = yv12bytes[nLenY + nLenU + i];
+        }
+    }
+
     /**
      * Generates the presentation time for frame N, in microseconds.
      */
@@ -249,6 +261,30 @@ public class AvcEncoder {
 
         for (int i = 0; i < width; i += 2) {
             for (int j = 0; j < height / 2; j++) {
+                des[k] = src[wh + width * j + i];
+                des[k + 1] = src[wh + width * j + i + 1];
+                k += 2;
+            }
+        }
+
+        return des;
+    }
+
+    private byte[] rotateYUV240SP2(byte[] src, int width, int height) {
+        byte[] des = new byte[src.length];
+
+        int wh = width * height;
+
+        int k = 0;
+        for (int i = 0; i < width; i++) {
+            for (int j = height - 1; j >= 0; j--) {
+                des[k] = src[width * j + i];
+                k++;
+            }
+        }
+
+        for (int i = 0; i < width; i += 2) {
+            for (int j = height / 2 - 1; j >= 0; j--) {
                 des[k] = src[wh + width * j + i];
                 des[k + 1] = src[wh + width * j + i + 1];
                 k += 2;

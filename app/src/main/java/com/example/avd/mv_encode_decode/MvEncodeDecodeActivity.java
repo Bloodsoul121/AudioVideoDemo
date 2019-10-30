@@ -30,7 +30,7 @@ public class MvEncodeDecodeActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mv_encode_decode);
         ButterKnife.bind(this);
-        mDefaultSavePath.setText("默认存储路径 : " + getExternalFilesDir(Environment.DIRECTORY_MOVIES));
+        mDefaultSavePath.setText("默认存储路径 : /storage/emulated/0/audio_mv/");
         requestPermissions();
     }
 

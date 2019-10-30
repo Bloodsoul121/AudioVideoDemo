@@ -42,7 +42,7 @@ public class MvEncode264Activity extends AppCompatActivity {
         setContentView(R.layout.activity_mv_encode264);
         ButterKnife.bind(this);
         mCameraPreview.bindActivity(this);
-        mPath.setText("/storage/emulated/0/Android/data/com.example.avd/files/Movies/");
+        mPath.setText("/storage/emulated/0/audio_mv/");
     }
 
     public void clickBtn(View view) {

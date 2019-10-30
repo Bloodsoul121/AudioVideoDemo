@@ -73,7 +73,7 @@ public class MvDecode264Activity extends BaseActivity {
 
     @Override
     protected void onResultSystemSelectedFilePath(String filePath) {
-        super.onResultSystemSelectedFilePath(filePath);
+//        super.onResultSystemSelectedFilePath(filePath);
         mFilePath = filePath;
         mPath.setText(filePath);
     }

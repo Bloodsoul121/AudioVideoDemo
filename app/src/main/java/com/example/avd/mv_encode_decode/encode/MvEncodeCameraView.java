@@ -236,7 +236,7 @@ public class MvEncodeCameraView extends TextureView {
 //            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
 
             // 这里一定要调用reader.acquireNextImage()和img.close方法否则不会一直回掉了
-            Image img = reader.acquireNextImage();
+            Image image = reader.acquireNextImage();
             switch (mImgReaderState) {
                 case STATE_IMG_PREVIEW:
                     Log.e(TAG, "mState: STATE_PREVIEW");
@@ -248,7 +248,8 @@ public class MvEncodeCameraView extends TextureView {
                     break;
                 case STATE_IMG_RECORD:
                     Log.e(TAG, "mState: STATE_RECORD");
-                    Image.Plane[] planes = img.getPlanes();
+                    int w = image.getWidth(), h = image.getHeight();
+                    Image.Plane[] planes = image.getPlanes();
                     byte[] dataYUV = null;
                     if (planes.length >= 3) {
                         ByteBuffer bufferY = planes[0].getBuffer();
@@ -263,19 +264,68 @@ public class MvEncodeCameraView extends TextureView {
                         bufferV.get(dataYUV, lengthY + lengthU, lengthV);
                     }
 
+                    // 第二种方法，感觉效果差不多
+//                    int w = image.getWidth(), h = image.getHeight();
+//                    // size是宽乘高的1.5倍 可以通过ImageFormat.getBitsPerPixel(ImageFormat.YUV_420_888)得到，12 / 8bit = 1.5
+//                    int i420Size = w * h * 3 / 2;
+//                    byte[] dataYUV = new byte[i420Size];
+//
+//                    Image.Plane[] planes = image.getPlanes();
+//                    //remaining0 = rowStride*(h-1)+w => 27632= 192*143+176 Y分量byte数组的size
+//                    int remaining0 = planes[0].getBuffer().remaining();
+//                    int remaining1 = planes[1].getBuffer().remaining();
+//                    //remaining2 = rowStride*(h/2-1)+w-1 =>  13807=  192*71+176-1 V分量byte数组的size
+//                    int remaining2 = planes[2].getBuffer().remaining();
+//                    //获取pixelStride，可能跟width相等，可能不相等
+//                    int pixelStride = planes[2].getPixelStride();
+//                    int rowOffest = planes[2].getRowStride();
+//
+//                    //分别准备三个数组接收YUV分量。
+//                    byte[] yRawSrcBytes = new byte[remaining0];
+//                    byte[] uRawSrcBytes = new byte[remaining1];
+//                    byte[] vRawSrcBytes = new byte[remaining2];
+//                    planes[0].getBuffer().get(yRawSrcBytes);
+//                    planes[1].getBuffer().get(uRawSrcBytes);
+//                    planes[2].getBuffer().get(vRawSrcBytes);
+//                    if (pixelStride == w) {
+//                        //两者相等，说明每个YUV块紧密相连，可以直接拷贝
+//                        System.arraycopy(yRawSrcBytes, 0, dataYUV, 0, rowOffest * h);
+//                        System.arraycopy(vRawSrcBytes, 0, dataYUV, rowOffest * h, rowOffest * h / 2 - 1);
+//                    } else {
+//                        //根据每个分量的size先生成byte数组
+//                        byte[] ySrcBytes = new byte[w * h];
+//                        byte[] uSrcBytes = new byte[w * h / 2 - 1];
+//                        byte[] vSrcBytes = new byte[w * h / 2 - 1];
+//                        for (int row = 0; row < h; row++) {
+//                            //源数组每隔 rowOffest 个bytes 拷贝 w 个bytes到目标数组
+//                            System.arraycopy(yRawSrcBytes, rowOffest * row, ySrcBytes, w * row, w);
+//                            //y执行两次，uv执行一次
+//                            if (row % 2 == 0) {
+//                                //最后一行需要减一
+//                                if (row == h - 2) {
+//                                    System.arraycopy(vRawSrcBytes, rowOffest * row / 2, vSrcBytes, w * row / 2, w - 1);
+//                                } else {
+//                                    System.arraycopy(vRawSrcBytes, rowOffest * row / 2, vSrcBytes, w * row / 2, w);
+//                                }
+//                            }
+//                        }
+//                        //yuv拷贝到一个数组里面
+//                        System.arraycopy(ySrcBytes, 0, dataYUV, 0, w * h);
+//                        System.arraycopy(vSrcBytes, 0, dataYUV, w * h, w * h / 2 - 1);
+//                    }
+
                     if (mAvcEncoder == null) {
-                        mAvcEncoder = new AvcEncoder(mPreviewSize.getWidth(),
-                                mPreviewSize.getHeight(), mFrameRate,
-                                getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
+//                        mAvcEncoder = new AvcEncoder(mPreviewSize.getWidth(), mPreviewSize.getHeight(), mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
+                        mAvcEncoder = new AvcEncoder(w, h, mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
                         mAvcEncoder.startEncoderThread();
-                        Toast.makeText(mContext, "开始录制视频成功", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, "开始录制视频", Toast.LENGTH_SHORT).show();
                     }
                     mAvcEncoder.putYUVData(dataYUV);
                     break;
                 default:
                     break;
             }
-            img.close();
+            image.close();
         }
 
     };
@@ -576,9 +626,11 @@ public class MvEncodeCameraView extends TextureView {
                 }
 
                 // For still image captures, we use the largest available size.
-                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
+//                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
 //                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, /*maxImages*/2);
-                mImageReader = ImageReader.newInstance(width, height, ImageFormat.YV12, 1);
+//                mImageReader = ImageReader.newInstance(width, height, ImageFormat.YV12, 1);
+//                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.YV12)), new CompareSizesByArea());
+                mImageReader = ImageReader.newInstance(width, height, ImageFormat.YUV_420_888, 2);
                 mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
@@ -629,9 +681,10 @@ public class MvEncodeCameraView extends TextureView {
                 // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
                 // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
                 // garbage capture data.
-                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
-                        rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
-                        maxPreviewHeight, largest);
+//                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
+//                        rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
+//                        maxPreviewHeight, largest);
+                mPreviewSize = new Size(width, height);
 
                 // We fit the aspect ratio of TextureView to the size of preview we picked.
                 int orientation = getResources().getConfiguration().orientation;
@@ -1000,13 +1053,13 @@ public class MvEncodeCameraView extends TextureView {
     public File getOutputMediaFile(int mediaType) {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String fileName = null;
-        File storageDir = null;
+        File storageDir = new File(Environment.getExternalStorageDirectory(), "audio_mv");
         if (mediaType == MEDIA_TYPE_IMAGE) {
             fileName = "JPEG_" + timeStamp + "_";
-            storageDir = mContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+//            storageDir = mContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         } else if (mediaType == MEDIA_TYPE_VIDEO) {
             fileName = "MP4_" + timeStamp + "_";
-            storageDir = mContext.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
+//            storageDir = mContext.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
         }
 
         // Create the storage directory if it does not exist
