@@ -43,7 +43,7 @@ public class MvDecode264Activity extends BaseActivity {
     private final static String H264_FILE = SD_PATH + "/H264.h264";
 
     private boolean mStopFlag = false;
-    private boolean mIsUseSPSandPPS = true;
+    private boolean mIsUseSPSandPPS = false;
     private MediaCodec mMediaCodec;
     private Thread mDecodeThread;
     private DataInputStream mInputStream;

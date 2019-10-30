@@ -7,14 +7,15 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.avd.R;
@@ -23,7 +24,7 @@ import com.example.avd.camera.Camera2BasicFragment;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MvEncode264Activity extends AppCompatActivity {
+public class MvEncode264Activity extends AppCompatActivity implements MvEncodeCameraView.Callback {
 
     private static final String FRAGMENT_DIALOG = "dialog";
     private static final int REQUEST_CAMERA_PERMISSION = 1;
@@ -34,6 +35,10 @@ public class MvEncode264Activity extends AppCompatActivity {
     Button mRecordBtn;
     @BindView(R.id.path)
     TextView mPath;
+    @BindView(R.id.img1)
+    ImageView mImg1;
+    @BindView(R.id.img2)
+    ImageView mImg2;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -42,7 +47,14 @@ public class MvEncode264Activity extends AppCompatActivity {
         setContentView(R.layout.activity_mv_encode264);
         ButterKnife.bind(this);
         mCameraPreview.bindActivity(this);
+        mCameraPreview.setCallback(this);
         mPath.setText("/storage/emulated/0/audio_mv/");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mCameraPreview.closeVideo();
     }
 
     public void clickBtn(View view) {
@@ -86,6 +98,30 @@ public class MvEncode264Activity extends AppCompatActivity {
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+    }
+
+    @Override
+    public void onCaptureBitmap(final Bitmap bitmap) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (bitmap != null) {
+                    mImg1.setImageBitmap(bitmap);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onCaptureRotateBitmap(final Bitmap bitmap) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (bitmap != null) {
+                    mImg2.setImageBitmap(bitmap);
+                }
+            }
+        });
     }
 
     /**

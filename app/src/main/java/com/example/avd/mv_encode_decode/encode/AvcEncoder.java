@@ -6,6 +6,8 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
+import com.example.avd.util.BitmapUtil;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,6 +42,8 @@ public class AvcEncoder {
     private Thread mEncoderThread;
 
     private boolean isRunning = false;
+
+    private MvEncodeCameraView.Callback mCallback;
 
     AvcEncoder(int width, int height, int frameRate, File outFile, boolean isCamera) {
         mIsCamera = isCamera;
@@ -124,10 +128,18 @@ public class AvcEncoder {
                             }
                         }
 
+
                         if (input != null) {
+                            if (mCallback != null) {
+                                mCallback.onCaptureBitmap(BitmapUtil.getBitmapImageFromYUV(input, mWidth, mHeight));
+                            }
                             // 尝试旋转90度
-//                            input = rotateYUV240SP(input, mWidth, mHeight);
+                            input = rotateYUV420SP3(input, mWidth, mHeight);
 //                            input = rotateYUV240SP2(input, mWidth, mHeight);
+                            if (mCallback != null) {
+//                                mCallback.onCaptureRotateBitmap(BitmapUtil.getBitmapImageFromYUV(rotateYUV420SP(input, mWidth, mHeight), mHeight, mWidth));
+                                mCallback.onCaptureRotateBitmap(BitmapUtil.getBitmapImageFromYUV(input, mHeight, mWidth));
+                            }
                         }
 
                         if (input != null) {
@@ -246,7 +258,7 @@ public class AvcEncoder {
     /**
      * 将视频流先旋转90度，否则录制的视频是横向的
      */
-    private byte[] rotateYUV240SP(byte[] src, int width, int height) {
+    private byte[] rotateYUV420SP(byte[] src, int width, int height) {
         byte[] des = new byte[src.length];
 
         int wh = width * height;
@@ -270,7 +282,7 @@ public class AvcEncoder {
         return des;
     }
 
-    private byte[] rotateYUV240SP2(byte[] src, int width, int height) {
+    private byte[] rotateYUV420SP2(byte[] src, int width, int height) {
         byte[] des = new byte[src.length];
 
         int wh = width * height;
@@ -292,6 +304,36 @@ public class AvcEncoder {
         }
 
         return des;
+    }
+
+    public static byte[] rotateYUV420SP3(byte[] src, int width, int height) {
+        byte[] dst = new byte[src.length];
+        int wh = width * height;
+        //旋转Y
+        int k = 0;
+        for (int i = 0; i < width; i++) {
+            for (int j = height - 1; j >= 0; j--) {
+                dst[k] = src[width * j + i];
+                k++;
+            }
+        }
+
+        int halfWidth = width / 2;
+        int halfHeight = height / 2;
+        for (int colIndex = 0; colIndex < halfWidth; colIndex++) {
+            for (int rowIndex = halfHeight - 1; rowIndex >= 0; rowIndex--) {
+                int index = (halfWidth * rowIndex + colIndex) * 2;
+                dst[k] = src[wh + index];
+                k++;
+                dst[k] = src[wh + index + 1];
+                k++;
+            }
+        }
+        return dst;
+    }
+
+    public void setCallback(MvEncodeCameraView.Callback callback) {
+        mCallback = callback;
     }
 
 }

@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -87,6 +88,7 @@ public class MvEncodeCameraView extends TextureView {
     private static final int STATE_IMG_RECORD = 1;
     private AvcEncoder mAvcEncoder;
     private int mFrameRate = 30;
+    private Callback mCallback;
     /*****************************************************/
 
     /**
@@ -318,6 +320,7 @@ public class MvEncodeCameraView extends TextureView {
 //                        mAvcEncoder = new AvcEncoder(mPreviewSize.getWidth(), mPreviewSize.getHeight(), mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
                         mAvcEncoder = new AvcEncoder(w, h, mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
                         mAvcEncoder.startEncoderThread();
+                        mAvcEncoder.setCallback(mCallback);
                         Toast.makeText(mContext, "开始录制视频", Toast.LENGTH_SHORT).show();
                     }
                     mAvcEncoder.putYUVData(dataYUV);
@@ -630,6 +633,7 @@ public class MvEncodeCameraView extends TextureView {
 //                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, /*maxImages*/2);
 //                mImageReader = ImageReader.newInstance(width, height, ImageFormat.YV12, 1);
 //                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.YV12)), new CompareSizesByArea());
+//                Size largest = new Size(640, 640);
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.YUV_420_888, 2);
                 mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
 
@@ -684,7 +688,7 @@ public class MvEncodeCameraView extends TextureView {
                 mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
                         rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
                         maxPreviewHeight, largest);
-//                mPreviewSize = new Size(rotatedPreviewWidth, rotatedPreviewHeight);
+//                mPreviewSize = new Size(largest.getWidth(), largest.getHeight());
 
                 // We fit the aspect ratio of TextureView to the size of preview we picked.
                 int orientation = getResources().getConfiguration().orientation;
@@ -1047,6 +1051,11 @@ public class MvEncodeCameraView extends TextureView {
         }
     }
 
+    public void closeVideo() {
+        mImgReaderState = STATE_IMG_PREVIEW;
+        onPause();
+    }
+
     /**
      * 获取输出照片视频路径
      */
@@ -1089,6 +1098,17 @@ public class MvEncodeCameraView extends TextureView {
             e.printStackTrace();
         }
         return file;
+    }
+
+    public void setCallback(Callback callback) {
+        mCallback = callback;
+    }
+
+    public interface Callback {
+
+        void onCaptureBitmap(Bitmap bitmap);
+
+        void onCaptureRotateBitmap(Bitmap bitmap);
     }
 
 }
