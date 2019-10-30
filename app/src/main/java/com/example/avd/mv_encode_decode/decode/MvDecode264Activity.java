@@ -163,7 +163,7 @@ public class MvDecode264Activity extends BaseActivity {
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
-                stopDecodingThread();
+//                stopDecodingThread(); // 这里跳转出去选择文件时，会执行
             }
         });
     }
