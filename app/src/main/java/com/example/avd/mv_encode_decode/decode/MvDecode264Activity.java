@@ -1,7 +1,6 @@
 package com.example.avd.mv_encode_decode.decode;
 
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
