@@ -133,6 +133,7 @@ public class MvDecode264Activity extends BaseActivity {
 
                 //初始化编码器
                 final MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, holder.getSurfaceFrame().width(), holder.getSurfaceFrame().height());
+//                final MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, holder.getSurfaceFrame().height(), holder.getSurfaceFrame().width());
                 /*h264常见的帧头数据为：
                 00 00 00 01 67    (SPS)
                 00 00 00 01 68    (PPS)

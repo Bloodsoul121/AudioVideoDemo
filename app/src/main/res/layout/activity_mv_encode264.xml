@@ -7,8 +7,8 @@
 
     <com.example.avd.mv_encode_decode.encode.MvEncodeCameraView
         android:id="@+id/camera_preview"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_width="240dp"
+        android:layout_height="320dp"
         android:layout_alignParentTop="true"
         android:layout_gravity="top" />
 

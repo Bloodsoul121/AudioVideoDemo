@@ -126,7 +126,7 @@ public class AvcEncoder {
 
                         if (input != null) {
                             // 尝试旋转90度
-                            input = rotateYUV240SP(input, mWidth, mHeight);
+//                            input = rotateYUV240SP(input, mWidth, mHeight);
 //                            input = rotateYUV240SP2(input, mWidth, mHeight);
                         }
 

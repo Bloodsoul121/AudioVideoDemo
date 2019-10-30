@@ -626,11 +626,11 @@ public class MvEncodeCameraView extends TextureView {
                 }
 
                 // For still image captures, we use the largest available size.
-//                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
+                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)), new CompareSizesByArea());
 //                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, /*maxImages*/2);
 //                mImageReader = ImageReader.newInstance(width, height, ImageFormat.YV12, 1);
 //                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.YV12)), new CompareSizesByArea());
-                mImageReader = ImageReader.newInstance(width, height, ImageFormat.YUV_420_888, 2);
+                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.YUV_420_888, 2);
                 mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
@@ -681,10 +681,10 @@ public class MvEncodeCameraView extends TextureView {
                 // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
                 // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
                 // garbage capture data.
-//                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
-//                        rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
-//                        maxPreviewHeight, largest);
-                mPreviewSize = new Size(width, height);
+                mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
+                        rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
+                        maxPreviewHeight, largest);
+//                mPreviewSize = new Size(rotatedPreviewWidth, rotatedPreviewHeight);
 
                 // We fit the aspect ratio of TextureView to the size of preview we picked.
                 int orientation = getResources().getConfiguration().orientation;
