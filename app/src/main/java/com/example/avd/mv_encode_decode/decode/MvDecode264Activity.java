@@ -1,6 +1,7 @@
 package com.example.avd.mv_encode_decode.decode;
 
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
@@ -151,6 +152,8 @@ public class MvDecode264Activity extends BaseActivity {
 
                 //设置帧率
                 mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
+                mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
+                mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
                 mMediaCodec.configure(mediaFormat, holder.getSurface(), null, 0);
                 mMediaCodec.start();
             }

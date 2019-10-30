@@ -319,7 +319,7 @@ public class MvEncodeCameraView extends TextureView {
 
                         if (mAvcEncoder == null) {
 //                        mAvcEncoder = new AvcEncoder(mPreviewSize.getWidth(), mPreviewSize.getHeight(), mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
-                            mAvcEncoder = new AvcEncoder(w, h, mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
+                            mAvcEncoder = new AvcEncoder(w, h, mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false, getDgree());
                             mAvcEncoder.startEncoderThread();
                             mAvcEncoder.setCallback(mCallback);
                             Toast.makeText(mContext, "开始录制视频", Toast.LENGTH_SHORT).show();
@@ -1107,6 +1107,26 @@ public class MvEncodeCameraView extends TextureView {
 
     public void setCallback(AvcEncoder.Callback callback) {
         mCallback = callback;
+    }
+
+    private int getDgree() {
+        int rotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break; // Natural orientation
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break; // Landscape left
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;// Upside down
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;// Landscape right
+        }
+        return degrees;
     }
 
 }

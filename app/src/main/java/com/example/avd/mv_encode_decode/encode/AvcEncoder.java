@@ -7,7 +7,6 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
-import com.example.avd.flow.AudioMvFlowCameraView;
 import com.example.avd.util.BitmapUtil;
 
 import java.io.BufferedOutputStream;
@@ -25,37 +24,39 @@ public class AvcEncoder {
 
     private int TIMEOUT_USEC = 12000;
     private int mYuvQueueSize = 10;
-
-    private ArrayBlockingQueue<byte[]> mYuvQueue = new ArrayBlockingQueue<>(mYuvQueueSize);
-
-    private MediaCodec mMediaCodec;
+    private int mDegrees;
     private int mWidth;
     private int mHeight;
     private int mFrameRate;
 
-    private File mOutFile;
-
     // true--Camera的预览数据编码
     // false--Camera2的预览数据编码
     private boolean mIsCamera;
-
-    private byte[] mConfigByte;
-
-    private Thread mEncoderThread;
-
     private boolean isRunning = false;
 
+    private byte[] mConfigByte;
+    private File mOutFile;
     private Callback mCallback;
+    private Thread mEncoderThread;
+    private MediaCodec mMediaCodec;
+    private BufferedOutputStream outputStream;
+    private ArrayBlockingQueue<byte[]> mYuvQueue = new ArrayBlockingQueue<>(mYuvQueueSize);
 
-    public AvcEncoder(int width, int height, int frameRate, File outFile, boolean isCamera) {
+    public AvcEncoder(int width, int height, int frameRate, File outFile, boolean isCamera, int degrees) {
         mIsCamera = isCamera;
         mWidth = width;
         mHeight = height;
         mFrameRate = frameRate;
         mOutFile = outFile;
+        mDegrees = degrees;
 
-        MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
-        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
+        MediaFormat mediaFormat;
+        if (mDegrees == 0) {
+            mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, height, width);
+        } else {
+            mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
+        }
+        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, width * height * 5);
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
@@ -69,8 +70,6 @@ public class AvcEncoder {
         mMediaCodec.start();
         createFile();
     }
-
-    private BufferedOutputStream outputStream;
 
     private void createFile() {
         try {
