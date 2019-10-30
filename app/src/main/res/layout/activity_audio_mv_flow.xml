@@ -1,9 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".flow.AudioMvFlowActivity">
 
-</android.support.constraint.ConstraintLayout>
+    <com.example.avd.flow.AudioMvFlowCameraView
+        android:id="@+id/camera_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_gravity="bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/record_red_icon"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/selector_record_icon"
+            tools:ignore="ContentDescription" />
+
+        <Button
+            android:id="@+id/start_record"
+            style="@style/normal_button"
+            android:layout_gravity="bottom"
+            android:onClick="startRecord"
+            android:text="开始录制 MV"
+            tools:ignore="HardcodedText" />
+
+        <Button
+            android:id="@+id/stop_record"
+            style="@style/normal_button"
+            android:layout_gravity="bottom"
+            android:onClick="stopRecord"
+            android:text="完成录制 MV"
+            tools:ignore="HardcodedText" />
+
+    </LinearLayout>
+
+</FrameLayout>

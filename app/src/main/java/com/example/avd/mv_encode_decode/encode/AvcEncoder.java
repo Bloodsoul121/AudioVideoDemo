@@ -1,11 +1,13 @@
 package com.example.avd.mv_encode_decode.encode;
 
+import android.graphics.Bitmap;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
+import com.example.avd.flow.AudioMvFlowCameraView;
 import com.example.avd.util.BitmapUtil;
 
 import java.io.BufferedOutputStream;
@@ -43,9 +45,9 @@ public class AvcEncoder {
 
     private boolean isRunning = false;
 
-    private MvEncodeCameraView.Callback mCallback;
+    private Callback mCallback;
 
-    AvcEncoder(int width, int height, int frameRate, File outFile, boolean isCamera) {
+    public AvcEncoder(int width, int height, int frameRate, File outFile, boolean isCamera) {
         mIsCamera = isCamera;
         mWidth = width;
         mHeight = height;
@@ -332,8 +334,15 @@ public class AvcEncoder {
         return dst;
     }
 
-    public void setCallback(MvEncodeCameraView.Callback callback) {
+    public void setCallback(Callback callback) {
         mCallback = callback;
+    }
+
+    public interface Callback {
+
+        void onCaptureBitmap(Bitmap bitmap);
+
+        void onCaptureRotateBitmap(Bitmap bitmap);
     }
 
 }

@@ -24,7 +24,7 @@ import com.example.avd.camera.Camera2BasicFragment;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MvEncode264Activity extends AppCompatActivity implements MvEncodeCameraView.Callback {
+public class MvEncode264Activity extends AppCompatActivity implements AvcEncoder.Callback {
 
     private static final String FRAGMENT_DIALOG = "dialog";
     private static final int REQUEST_CAMERA_PERMISSION = 1;

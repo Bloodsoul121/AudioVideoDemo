@@ -1,4 +1,4 @@
-package com.example.avd.mv_encode_decode.encode;
+package com.example.avd.flow;
 
 import android.Manifest;
 import android.app.Activity;
@@ -46,6 +46,7 @@ import android.widget.Toast;
 import com.example.avd.R;
 import com.example.avd.camera.Camera2BasicFragment;
 import com.example.avd.camera.base.CompareSizesByArea;
+import com.example.avd.mv_encode_decode.encode.AvcEncoder;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +63,7 @@ import java.util.concurrent.TimeUnit;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 
-public class MvEncodeCameraView extends TextureView {
+public class AudioMvFlowCameraView extends TextureView {
 
     private static final String TAG = "CameraPreview";
     private static final String FRAGMENT_DIALOG = "dialog";
@@ -89,6 +90,7 @@ public class MvEncodeCameraView extends TextureView {
     private AvcEncoder mAvcEncoder;
     private int mFrameRate = 30;
     private AvcEncoder.Callback mCallback;
+    private File mOutputFile;
     /*****************************************************/
 
     /**
@@ -199,11 +201,11 @@ public class MvEncodeCameraView extends TextureView {
     private CaptureRequest mPreviewRequest;
 
     /**
-     * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
+     * {@link SurfaceTextureListener} handles several lifecycle events on a
      * {@link TextureView}.
      */
-    private final TextureView.SurfaceTextureListener mSurfaceTextureListener
-            = new TextureView.SurfaceTextureListener() {
+    private final SurfaceTextureListener mSurfaceTextureListener
+            = new SurfaceTextureListener() {
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
@@ -319,7 +321,7 @@ public class MvEncodeCameraView extends TextureView {
 
                         if (mAvcEncoder == null) {
 //                        mAvcEncoder = new AvcEncoder(mPreviewSize.getWidth(), mPreviewSize.getHeight(), mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
-                            mAvcEncoder = new AvcEncoder(w, h, mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
+                            mAvcEncoder = new AvcEncoder(w, h, mFrameRate, mOutputFile, false);
                             mAvcEncoder.startEncoderThread();
                             mAvcEncoder.setCallback(mCallback);
                             Toast.makeText(mContext, "开始录制视频", Toast.LENGTH_SHORT).show();
@@ -437,16 +439,15 @@ public class MvEncodeCameraView extends TextureView {
 
     };
 
-
-    public MvEncodeCameraView(Context context) {
+    public AudioMvFlowCameraView(Context context) {
         this(context, null);
     }
 
-    public MvEncodeCameraView(Context context, AttributeSet attrs) {
+    public AudioMvFlowCameraView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public MvEncodeCameraView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public AudioMvFlowCameraView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }
@@ -623,7 +624,8 @@ public class MvEncodeCameraView extends TextureView {
 
                 // We don't use a front facing camera in this sample.
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+//                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
                     continue;
                 }
 
@@ -1067,7 +1069,7 @@ public class MvEncodeCameraView extends TextureView {
     public File getOutputMediaFile(int mediaType) {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String fileName = null;
-        File storageDir = new File(Environment.getExternalStorageDirectory(), "audio_mv");
+        File storageDir = new File(Environment.getExternalStorageDirectory(), "audio_mv_flow");
         if (mediaType == MEDIA_TYPE_IMAGE) {
             fileName = "JPEG_" + timeStamp + "_";
 //            storageDir = mContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -1107,6 +1109,10 @@ public class MvEncodeCameraView extends TextureView {
 
     public void setCallback(AvcEncoder.Callback callback) {
         mCallback = callback;
+    }
+
+    public void setOutputFile(File file) {
+        mOutputFile = file;
     }
 
 }
