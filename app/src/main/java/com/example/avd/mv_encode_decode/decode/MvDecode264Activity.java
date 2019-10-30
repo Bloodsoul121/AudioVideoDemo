@@ -1,6 +1,7 @@
 package com.example.avd.mv_encode_decode.decode;
 
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
@@ -133,6 +134,7 @@ public class MvDecode264Activity extends BaseActivity {
 
                 //初始化编码器
                 final MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, holder.getSurfaceFrame().width(), holder.getSurfaceFrame().height());
+//                final MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, 1080, 1440);
 //                final MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, holder.getSurfaceFrame().height(), holder.getSurfaceFrame().width());
                 /*h264常见的帧头数据为：
                 00 00 00 01 67    (SPS)
@@ -149,7 +151,7 @@ public class MvDecode264Activity extends BaseActivity {
                 }
 
                 //设置帧率
-                mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 40);
+                mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
                 mMediaCodec.configure(mediaFormat, holder.getSurface(), null, 0);
                 mMediaCodec.start();
             }
@@ -161,7 +163,7 @@ public class MvDecode264Activity extends BaseActivity {
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
-
+                stopDecodingThread();
             }
         });
     }

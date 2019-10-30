@@ -237,36 +237,37 @@ public class MvEncodeCameraView extends TextureView {
         public void onImageAvailable(ImageReader reader) {
 //            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
 
-            // 这里一定要调用reader.acquireNextImage()和img.close方法否则不会一直回掉了
-            Image image = reader.acquireNextImage();
-            switch (mImgReaderState) {
-                case STATE_IMG_PREVIEW:
-                    Log.e(TAG, "mState: STATE_PREVIEW");
-                    if (mAvcEncoder != null) {
-                        mAvcEncoder.stopThread();
-                        mAvcEncoder = null;
-                        Toast.makeText(mContext, "停止录制视频成功", Toast.LENGTH_SHORT).show();
-                    }
-                    break;
-                case STATE_IMG_RECORD:
-                    Log.e(TAG, "mState: STATE_RECORD");
-                    int w = image.getWidth(), h = image.getHeight();
-                    Image.Plane[] planes = image.getPlanes();
-                    byte[] dataYUV = null;
-                    if (planes.length >= 3) {
-                        ByteBuffer bufferY = planes[0].getBuffer();
-                        ByteBuffer bufferU = planes[1].getBuffer();
-                        ByteBuffer bufferV = planes[2].getBuffer();
-                        int lengthY = bufferY.remaining();
-                        int lengthU = bufferU.remaining();
-                        int lengthV = bufferV.remaining();
-                        dataYUV = new byte[lengthY + lengthU + lengthV];
-                        bufferY.get(dataYUV, 0, lengthY);
-                        bufferU.get(dataYUV, lengthY, lengthU);
-                        bufferV.get(dataYUV, lengthY + lengthU, lengthV);
-                    }
+            try {
+                // 这里一定要调用 reader.acquireNextImage 和 img.close 方法否则不会一直回调了
+                Image image = reader.acquireNextImage();
+                switch (mImgReaderState) {
+                    case STATE_IMG_PREVIEW:
+                        Log.e(TAG, "mState: STATE_PREVIEW");
+                        if (mAvcEncoder != null) {
+                            mAvcEncoder.stopThread();
+                            mAvcEncoder = null;
+                            Toast.makeText(mContext, "停止录制视频成功", Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                    case STATE_IMG_RECORD:
+                        Log.e(TAG, "mState: STATE_RECORD");
+                        int w = image.getWidth(), h = image.getHeight();
+                        Image.Plane[] planes = image.getPlanes();
+                        byte[] dataYUV = null;
+                        if (planes.length >= 3) {
+                            ByteBuffer bufferY = planes[0].getBuffer();
+                            ByteBuffer bufferU = planes[1].getBuffer();
+                            ByteBuffer bufferV = planes[2].getBuffer();
+                            int lengthY = bufferY.remaining();
+                            int lengthU = bufferU.remaining();
+                            int lengthV = bufferV.remaining();
+                            dataYUV = new byte[lengthY + lengthU + lengthV];
+                            bufferY.get(dataYUV, 0, lengthY);
+                            bufferU.get(dataYUV, lengthY, lengthU);
+                            bufferV.get(dataYUV, lengthY + lengthU, lengthV);
+                        }
 
-                    // 第二种方法，感觉效果差不多
+                        // 第二种方法，感觉效果差不多
 //                    int w = image.getWidth(), h = image.getHeight();
 //                    // size是宽乘高的1.5倍 可以通过ImageFormat.getBitsPerPixel(ImageFormat.YUV_420_888)得到，12 / 8bit = 1.5
 //                    int i420Size = w * h * 3 / 2;
@@ -316,19 +317,23 @@ public class MvEncodeCameraView extends TextureView {
 //                        System.arraycopy(vSrcBytes, 0, dataYUV, w * h, w * h / 2 - 1);
 //                    }
 
-                    if (mAvcEncoder == null) {
+                        if (mAvcEncoder == null) {
 //                        mAvcEncoder = new AvcEncoder(mPreviewSize.getWidth(), mPreviewSize.getHeight(), mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
-                        mAvcEncoder = new AvcEncoder(w, h, mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
-                        mAvcEncoder.startEncoderThread();
-                        mAvcEncoder.setCallback(mCallback);
-                        Toast.makeText(mContext, "开始录制视频", Toast.LENGTH_SHORT).show();
-                    }
-                    mAvcEncoder.putYUVData(dataYUV);
-                    break;
-                default:
-                    break;
+                            mAvcEncoder = new AvcEncoder(w, h, mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
+                            mAvcEncoder.startEncoderThread();
+                            mAvcEncoder.setCallback(mCallback);
+                            Toast.makeText(mContext, "开始录制视频", Toast.LENGTH_SHORT).show();
+                        }
+                        mAvcEncoder.putYUVData(dataYUV);
+                        break;
+                    default:
+                        break;
+                }
+                image.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            image.close();
         }
 
     };
