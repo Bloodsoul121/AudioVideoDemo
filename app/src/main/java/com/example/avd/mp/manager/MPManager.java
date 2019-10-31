@@ -123,7 +123,7 @@ public class MPManager implements MediaPlayer.OnSeekCompleteListener, MediaPlaye
             mMediaPlayer.stop();
             mMediaPlayer.reset();//进行重置
 //            mMediaPlayer.setDataSource(mMusicPath);
-            AssetFileDescriptor fd = MainApplication.getApplication().getAssets().openFd(mCurMusic.path);
+            AssetFileDescriptor fd = MainApplication.getContext().getAssets().openFd(mCurMusic.path);
             mMediaPlayer.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
             mMediaPlayer.prepare();
             start();

@@ -125,37 +125,7 @@ public class MvDecode264Activity extends BaseActivity {
         surfaceHolder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                try {
-                    //创建解码器
-                    mMediaCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                //初始化编码器
-                final MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, holder.getSurfaceFrame().width(), holder.getSurfaceFrame().height());
-//                final MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, 1080, 1440);
-//                final MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, holder.getSurfaceFrame().height(), holder.getSurfaceFrame().width());
-                /*h264常见的帧头数据为：
-                00 00 00 01 67    (SPS)
-                00 00 00 01 68    (PPS)
-                00 00 00 01 65    (IDR帧)
-                00 00 00 01 61    (P帧)*/
-
-                //获取H264文件中的pps和sps数据
-                if (mIsUseSPSandPPS) {
-                    byte[] header_sps = {0, 0, 0, 1, 67, 66, 0, 42, (byte) 149, (byte) 168, 30, 0, (byte) 137, (byte) 249, 102, (byte) 224, 32, 32, 32, 64};
-                    byte[] header_pps = {0, 0, 0, 1, 68, (byte) 206, 60, (byte) 128, 0, 0, 0, 1, 6, (byte) 229, 1, (byte) 151, (byte) 128};
-                    mediaFormat.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
-                    mediaFormat.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
-                }
-
-                //设置帧率
-                mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
-                mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
-                mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
-                mMediaCodec.configure(mediaFormat, holder.getSurface(), null, 0);
-                mMediaCodec.start();
+                configMediaCodec(holder);
             }
 
             @Override
@@ -168,6 +138,41 @@ public class MvDecode264Activity extends BaseActivity {
 //                stopDecodingThread(); // 这里跳转出去选择文件时，会执行
             }
         });
+    }
+
+    private void configMediaCodec(SurfaceHolder holder) {
+        if (mMediaCodec != null) {
+            return;
+        }
+        try {
+            //创建解码器
+            mMediaCodec = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //初始化编码器
+        final MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, holder.getSurfaceFrame().width(), holder.getSurfaceFrame().height());
+        /*h264常见的帧头数据为：
+        00 00 00 01 67    (SPS)
+        00 00 00 01 68    (PPS)
+        00 00 00 01 65    (IDR帧)
+        00 00 00 01 61    (P帧)*/
+
+        //获取H264文件中的pps和sps数据
+        if (mIsUseSPSandPPS) {
+            byte[] header_sps = {0, 0, 0, 1, 67, 66, 0, 42, (byte) 149, (byte) 168, 30, 0, (byte) 137, (byte) 249, 102, (byte) 224, 32, 32, 32, 64};
+            byte[] header_pps = {0, 0, 0, 1, 68, (byte) 206, 60, (byte) 128, 0, 0, 0, 1, 6, (byte) 229, 1, (byte) 151, (byte) 128};
+            mediaFormat.setByteBuffer("csd-0", ByteBuffer.wrap(header_sps));
+            mediaFormat.setByteBuffer("csd-1", ByteBuffer.wrap(header_pps));
+        }
+
+        //设置帧率
+        mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
+        mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
+        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
+        mMediaCodec.configure(mediaFormat, holder.getSurface(), null, 0);
+        mMediaCodec.start();
     }
 
     /**

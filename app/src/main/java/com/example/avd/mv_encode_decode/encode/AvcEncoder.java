@@ -6,7 +6,9 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.view.Surface;
 
+import com.example.avd.ActivityLifeManager;
 import com.example.avd.util.BitmapUtil;
 
 import java.io.BufferedOutputStream;
@@ -17,6 +19,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 
+/**
+ * 其他补充：
+ * MediaCodec是Android在4.1中加入的新的API，目前也有很多文章介绍MediaCodec的用法，但是很多时候很多手机都失败，
+ * 主要问题出现在调用dequeueOutputBuffer的时候总是返回-1，让你以为No buffer available !
+ * 这里介绍一个开源项目libstreaming,我们借助此项目中封装的一个工具类EncoderDebugger，来初始化MediaCodec会很好的解决此问题，
+ * 目前为止测试了几个手机都可以成功，包括小米华为Moto。
+ * 跳转地址：http://kidloserme.github.io/2016/09/24/2016-03-09-mediacodec/
+ */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
 public class AvcEncoder {
 
@@ -24,7 +34,6 @@ public class AvcEncoder {
 
     private int TIMEOUT_USEC = 12000;
     private int mYuvQueueSize = 10;
-    private int mDegrees;
     private int mWidth;
     private int mHeight;
     private int mFrameRate;
@@ -42,16 +51,15 @@ public class AvcEncoder {
     private BufferedOutputStream outputStream;
     private ArrayBlockingQueue<byte[]> mYuvQueue = new ArrayBlockingQueue<>(mYuvQueueSize);
 
-    public AvcEncoder(int width, int height, int frameRate, File outFile, boolean isCamera, int degrees) {
+    public AvcEncoder(int width, int height, int frameRate, File outFile, boolean isCamera) {
         mIsCamera = isCamera;
         mWidth = width;
         mHeight = height;
         mFrameRate = frameRate;
         mOutFile = outFile;
-        mDegrees = degrees;
 
         MediaFormat mediaFormat;
-        if (mDegrees == 0) {
+        if (getDgree() == 0) {
             mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, height, width);
         } else {
             mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
@@ -135,7 +143,7 @@ public class AvcEncoder {
                                 mCallback.onCaptureBitmap(BitmapUtil.getBitmapImageFromYUV(input, mWidth, mHeight));
                             }
                             // 尝试旋转90度
-                            input = rotateYUV420SP3(input, mWidth, mHeight);
+                            input = RotateYuvUtil.rotateYUV420SP3(input, mWidth, mHeight);
 //                            input = rotateYUV240SP2(input, mWidth, mHeight);
                             if (mCallback != null) {
 //                                mCallback.onCaptureRotateBitmap(BitmapUtil.getBitmapImageFromYUV(rotateYUV420SP(input, mWidth, mHeight), mHeight, mWidth));
@@ -256,83 +264,6 @@ public class AvcEncoder {
         return 132 + frameIndex * 1000000 / mFrameRate;
     }
 
-    /**
-     * 将视频流先旋转90度，否则录制的视频是横向的
-     */
-    private byte[] rotateYUV420SP(byte[] src, int width, int height) {
-        byte[] des = new byte[src.length];
-
-        int wh = width * height;
-        //旋转Y
-        int k = 0;
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                des[k] = src[width * j + i];
-                k++;
-            }
-        }
-
-        for (int i = 0; i < width; i += 2) {
-            for (int j = 0; j < height / 2; j++) {
-                des[k] = src[wh + width * j + i];
-                des[k + 1] = src[wh + width * j + i + 1];
-                k += 2;
-            }
-        }
-
-        return des;
-    }
-
-    private byte[] rotateYUV420SP2(byte[] src, int width, int height) {
-        byte[] des = new byte[src.length];
-
-        int wh = width * height;
-
-        int k = 0;
-        for (int i = 0; i < width; i++) {
-            for (int j = height - 1; j >= 0; j--) {
-                des[k] = src[width * j + i];
-                k++;
-            }
-        }
-
-        for (int i = 0; i < width; i += 2) {
-            for (int j = height / 2 - 1; j >= 0; j--) {
-                des[k] = src[wh + width * j + i];
-                des[k + 1] = src[wh + width * j + i + 1];
-                k += 2;
-            }
-        }
-
-        return des;
-    }
-
-    public static byte[] rotateYUV420SP3(byte[] src, int width, int height) {
-        byte[] dst = new byte[src.length];
-        int wh = width * height;
-        //旋转Y
-        int k = 0;
-        for (int i = 0; i < width; i++) {
-            for (int j = height - 1; j >= 0; j--) {
-                dst[k] = src[width * j + i];
-                k++;
-            }
-        }
-
-        int halfWidth = width / 2;
-        int halfHeight = height / 2;
-        for (int colIndex = 0; colIndex < halfWidth; colIndex++) {
-            for (int rowIndex = halfHeight - 1; rowIndex >= 0; rowIndex--) {
-                int index = (halfWidth * rowIndex + colIndex) * 2;
-                dst[k] = src[wh + index];
-                k++;
-                dst[k] = src[wh + index + 1];
-                k++;
-            }
-        }
-        return dst;
-    }
-
     public void setCallback(Callback callback) {
         mCallback = callback;
     }
@@ -342,6 +273,26 @@ public class AvcEncoder {
         void onCaptureBitmap(Bitmap bitmap);
 
         void onCaptureRotateBitmap(Bitmap bitmap);
+    }
+
+    private int getDgree() {
+        int rotation = ActivityLifeManager.getInstance().getCurrentActivity().getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break; // Natural orientation
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break; // Landscape left
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;// Upside down
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;// Landscape right
+        }
+        return degrees;
     }
 
 }

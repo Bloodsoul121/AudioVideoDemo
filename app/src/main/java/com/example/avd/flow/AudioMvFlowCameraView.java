@@ -321,7 +321,7 @@ public class AudioMvFlowCameraView extends TextureView {
 
                         if (mAvcEncoder == null) {
 //                        mAvcEncoder = new AvcEncoder(mPreviewSize.getWidth(), mPreviewSize.getHeight(), mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
-                            mAvcEncoder = new AvcEncoder(w, h, mFrameRate, mOutputFile, false, getDgree());
+                            mAvcEncoder = new AvcEncoder(w, h, mFrameRate, mOutputFile, false);
                             mAvcEncoder.startEncoderThread();
                             mAvcEncoder.setCallback(mCallback);
                             Toast.makeText(mContext, "开始录制视频", Toast.LENGTH_SHORT).show();
@@ -1113,26 +1113,6 @@ public class AudioMvFlowCameraView extends TextureView {
 
     public void setOutputFile(File file) {
         mOutputFile = file;
-    }
-
-    private int getDgree() {
-        int rotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
-        int degrees = 0;
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                degrees = 0;
-                break; // Natural orientation
-            case Surface.ROTATION_90:
-                degrees = 90;
-                break; // Landscape left
-            case Surface.ROTATION_180:
-                degrees = 180;
-                break;// Upside down
-            case Surface.ROTATION_270:
-                degrees = 270;
-                break;// Landscape right
-        }
-        return degrees;
     }
 
 }
