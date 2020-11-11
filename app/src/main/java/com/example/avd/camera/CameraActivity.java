@@ -2,6 +2,7 @@ package com.example.avd.camera;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.example.avd.R;
 
@@ -19,6 +20,14 @@ public class CameraActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, Camera2BasicFragment.newInstance())
                     .commit();
+        }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            Log.d("Camera2BasicFragment", "getDecorView -> width " + getWindow().getDecorView().getWidth() + " , height " + getWindow().getDecorView().getHeight());
         }
     }
 }

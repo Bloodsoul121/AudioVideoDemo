@@ -10,28 +10,28 @@
     <Button
         android:id="@+id/use_camera"
         style="@style/normal_button"
-        android:onClick="clickBtn3"
+        android:onClick="clickBtn1"
         android:text="使用相机 Camera"
         tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/reuse_camera"
         style="@style/normal_button"
-        android:onClick="clickBtn7"
+        android:onClick="clickBtn2"
         android:text="复用相机 CameraPreview"
         tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/media_player"
         style="@style/normal_button"
-        android:onClick="clickBtn1"
+        android:onClick="clickBtn3"
         android:text="播放音频 MediaPlayer"
         tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/audio_record"
         style="@style/normal_button"
-        android:onClick="clickBtn2"
+        android:onClick="clickBtn4"
         android:text="录制音频 AudioRecord"
         tools:ignore="HardcodedText" />
 
@@ -45,14 +45,14 @@
     <Button
         android:id="@+id/mv"
         style="@style/normal_button"
-        android:onClick="clickBtn4"
+        android:onClick="clickBtn6"
         android:text="视频的分离与合成"
         tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/mv_encode_decode"
         style="@style/normal_button"
-        android:onClick="clickBtn6"
+        android:onClick="clickBtn7"
         android:text="视频 H.264 硬编解"
         tools:ignore="HardcodedText" />
 
