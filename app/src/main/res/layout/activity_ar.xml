@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".audio_record.AudioRecordActivity">
+
+    <TextView
+        android:id="@+id/dir_path"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp" />
+
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp" />
 
     <Button
         android:layout_width="match_parent"
@@ -23,42 +34,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="playAudioPcm"
-        android:text="播放 pcm" />
+        android:text="播放音频" />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="transformPCM2MAV"
-        android:text="pcm 转换 wav" />
+        android:text="pcm 转换 mav" />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="playAudioMav"
-        android:text="播放 mav" />
-
-    <TextView
-        android:id="@+id/dir_path"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="15dp" />
-
-    <TextView
-        android:id="@+id/status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="15dp" />
+        android:text="播放音频（mav格式）" />
 
     <View
-        android:background="#e6e6e6"
         android:layout_width="match_parent"
-        android:layout_height="1dp"/>
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="setOriFilePath"
-        android:text="添加文件名" />
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="#e6e6e6" />
 
     <TextView
         android:id="@+id/ori_path"
@@ -69,7 +63,13 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:onClick="setOriFilePath"
+        android:text="添加音频文件（pcm格式）" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:onClick="playAudioPcm2"
-        android:text="播放 pcm 文件" />
+        android:text="播放音频（pcm格式）" />
 
 </LinearLayout>

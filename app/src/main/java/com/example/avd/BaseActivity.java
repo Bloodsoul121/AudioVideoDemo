@@ -29,7 +29,9 @@ public abstract class BaseActivity extends AppCompatActivity {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(BaseActivity.this, message, Toast.LENGTH_SHORT).show();
+                Toast toast = Toast.makeText(BaseActivity.this, "", Toast.LENGTH_SHORT);
+                toast.setText(message);
+                toast.show();
             }
         });
     }
@@ -42,6 +44,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         //intent.setType(“video/*;image/*”);//同时选择视频和图片
 //        intent.setType("video/*;audio/*");
         intent.setType("*/*");//无类型限制
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(intent, 1);
     }

@@ -280,7 +280,7 @@ public class Camera2BasicFragment extends Fragment implements View.OnClickListen
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                         if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
                             mState = STATE_PICTURE_TAKEN;
-                            captureStillPicture();
+                            captureStillPicture(); // 1
                         } else {
                             runPrecaptureSequence();
                         }

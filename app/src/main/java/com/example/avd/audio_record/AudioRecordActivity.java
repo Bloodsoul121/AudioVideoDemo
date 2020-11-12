@@ -13,7 +13,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.avd.BaseActivity;
 import com.example.avd.R;
@@ -60,6 +59,7 @@ public class AudioRecordActivity extends BaseActivity {
     private boolean mIsPlaying;
     private String mPlayFilePath;
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,7 +67,8 @@ public class AudioRecordActivity extends BaseActivity {
         ButterKnife.bind(this);
         requestPermissions(); // 需要录制权限
 
-        mPlayPath.setText(Environment.getExternalStorageDirectory().getAbsolutePath());
+        mStatus.setText("等待录制");
+        mPlayPath.setText("音频文件：" + Environment.getExternalStorageDirectory().getAbsolutePath());
     }
 
     @Override
@@ -86,36 +87,43 @@ public class AudioRecordActivity extends BaseActivity {
             @Override
             public void accept(Boolean aBoolean) {
                 if (aBoolean) {
-                    Toast.makeText(AudioRecordActivity.this, "accept", Toast.LENGTH_SHORT).show();
+                    toast("accept");
                     initRecord();
                     initBaseDir();
                 } else {
-                    Toast.makeText(AudioRecordActivity.this, "deny", Toast.LENGTH_SHORT).show();
+                    toast("deny");
                     finish();
                 }
             }
         });
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onResultSystemSelectedFilePath(String filePath) {
         super.onResultSystemSelectedFilePath(filePath);
         mPlayFilePath = filePath;
-        mPlayPath.setText(filePath);
+        mPlayPath.setText("音频文件：" + filePath);
     }
 
     private void initRecord() {
-        // 指定音频源
+        // 指定音频源，设定录音来源为主麦克风
         mAudioSource = MediaRecorder.AudioSource.MIC;
         // 指定采样率(MediaRecoder 的采样率通常是8000Hz CD的通常是44100Hz 不同的Android手机硬件将能够以不同的采样率进行采样。其中11025是一个常见的采样率)
+        // 音频采样率，即可每秒中采集多少个音频数据
         mSampleRateInHz = 44100;
         // 指定捕获音频的通道数目.在AudioFormat类中指定用于此的常量
-        mChannelConfig = AudioFormat.ENCODING_PCM_16BIT;
+        // 录音通道，MONO单声道，STEREO立体声
+//        mChannelConfig = AudioFormat.CHANNEL_IN_MONO;
+        mChannelConfig = AudioFormat.CHANNEL_CONFIGURATION_MONO;
         // 指定音频量化位数 ,在AudioFormaat类中指定了以下各种可能的常量。通常我们选择ENCODING_PCM_16BIT和ENCODING_PCM_8BIT PCM代表的是脉冲编码调制，它实际上是原始音频样本。
         // 因此可以设置每个样本的分辨率为16位或者8位，16位将占用更多的空间和处理能力,表示的音频也更加接近真实。
+        // 音频每个采样点的位数，即音频的精度
         mAudioFormat = AudioFormat.ENCODING_PCM_16BIT;
+        // 音频数据写入缓冲区的总数，通过 AudioRecord.getMinBufferSize 获取最小的缓冲区。
         mBufferSizeInBytes = AudioRecord.getMinBufferSize(mSampleRateInHz, mChannelConfig, mAudioFormat);
         mAudioRecord = new AudioRecord(mAudioSource, mSampleRateInHz, mChannelConfig, mAudioFormat, mBufferSizeInBytes);
+        // 对于采样率为16k位深有16bit（2byte）的录制参数，每秒钟的byte数为:16000*2=32000，即每分钟为:32000*60 byte/min= 1.875 MB/min的数据量
     }
 
     @SuppressLint("SetTextI18n")
@@ -150,28 +158,21 @@ public class AudioRecordActivity extends BaseActivity {
                     DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
                     byte[] buffer = new byte[mBufferSizeInBytes];
 
-                    int count = 0;
+                    long startTime = System.currentTimeMillis();
 
                     // 开始录音
                     mAudioRecord.startRecording();
                     while (mIsRecording) {
                         int result = mAudioRecord.read(buffer, 0, mBufferSizeInBytes);
 
-                        dos.write(buffer);
+                        for (int i = 0; i < result; i++) {
+                            dos.write(buffer[i]);
+                        }
 
-//                        for (int i = 0; i < result; i++) {
-//                            dos.write(buffer[i]);
-//                        }
+//                        dos.write(buffer);
 
                         // 更新状态
-                        if (count % 3 == 0) {
-                            mStatus.setText("录制中 。");
-                        } else if (count % 3 == 1) {
-                            mStatus.setText("录制中 。。");
-                        } else {
-                            mStatus.setText("录制中 。。。");
-                        }
-                        count++;
+                        mStatus.setText("录制中 " + (System.currentTimeMillis() - startTime) / 1000 + "s");
                     }
 
                     mAudioRecord.stop();
@@ -192,35 +193,45 @@ public class AudioRecordActivity extends BaseActivity {
     }
 
     public void playAudioPcm(View view) {
-        mIsPlaying = true;
-        File file = new File(mFileDir, mPcmFileName);
-        try {
-            DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
-            int bufferSize = AudioTrack.getMinBufferSize(mSampleRateInHz, mChannelConfig, mAudioFormat);
-            AudioTrack audioTrack = new AudioTrack(mAudioSource, mSampleRateInHz, mChannelConfig, mAudioFormat, bufferSize, AudioTrack.MODE_STREAM);
-            byte[] buffer = new byte[bufferSize];
-            audioTrack.play();
-
-            while (mIsPlaying) {
-                int i = 0;
-                while (dis.available() > 0 && i < bufferSize) {
-                    buffer[i] = dis.readByte();
-                    i++;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (mIsPlaying) {
+                    return;
                 }
+                mIsPlaying = true;
+                File file = new File(mFileDir, mPcmFileName);
+                try {
+                    int bufferSize = AudioTrack.getMinBufferSize(mSampleRateInHz, mChannelConfig, mAudioFormat);
+                    DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(file)));
+                    byte[] buffer = new byte[bufferSize];
 
-                audioTrack.write(buffer, 0, bufferSize);
+                    AudioTrack audioTrack = new AudioTrack(mAudioSource, mSampleRateInHz, mChannelConfig, mAudioFormat, bufferSize, AudioTrack.MODE_STREAM);
+                    audioTrack.play();
 
-                if (i < bufferSize) {
-                    audioTrack.stop();
-                    audioTrack.release();
-                    dis.close();
-                    break;
+                    while (mIsPlaying) {
+                        int i = 0;
+                        while (dis.available() > 0 && i < bufferSize) {
+                            buffer[i] = dis.readByte();
+                            i++;
+                        }
+
+                        audioTrack.write(buffer, 0, bufferSize);
+
+                        if (i < bufferSize) {
+                            audioTrack.stop();
+                            audioTrack.release();
+                            dis.close();
+                            mIsPlaying = false;
+                            break;
+                        }
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        }).start();
     }
 
     @SuppressLint("SetTextI18n")
@@ -421,6 +432,9 @@ public class AudioRecordActivity extends BaseActivity {
             toast("file name is null");
             return;
         }
+        if (mIsPlaying) {
+            return;
+        }
 
         mIsPlaying = true;
         File file = new File(Environment.getExternalStorageDirectory(), fileName);
@@ -444,6 +458,7 @@ public class AudioRecordActivity extends BaseActivity {
                     audioTrack.stop();
                     audioTrack.release();
                     dis.close();
+                    mIsPlaying = false;
                     break;
                 }
             }
