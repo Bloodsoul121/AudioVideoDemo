@@ -68,6 +68,7 @@ public class AudioEncodeRunnable implements Runnable {
             FileOutputStream fos = new FileOutputStream(new File(mAudioPath));
             BufferedOutputStream bos = new BufferedOutputStream(fos,500 * 1024);
             boolean isReadEnd = false;
+            int progress = 0;
             while (!isReadEnd){
                 for (int i = 0;i < encodeInputBuffers.length - 1;i++){//减掉1很重要，不要忘记
                     if (fis.read(buffer) != -1){
@@ -104,6 +105,11 @@ public class AudioEncodeRunnable implements Runnable {
 
                     mediaEncode.releaseOutputBuffer(outputIndex,false);
                     outputIndex = mediaEncode.dequeueOutputBuffer(encodeBufferInfo,10000);
+
+                    if (mListener != null) {
+                        progress += chunkAudio.length;
+                        mListener.decodeProgress(progress);
+                    }
                 }
             }
             mediaEncode.stop();

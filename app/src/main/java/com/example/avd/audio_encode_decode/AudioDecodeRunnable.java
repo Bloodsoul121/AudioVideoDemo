@@ -31,7 +31,7 @@ public class AudioDecodeRunnable implements Runnable {
         try {
             MediaFormat trackFormat = mMediaExtractor.getTrackFormat(mAudioTrack);
             MediaCodec mediaCodec = MediaCodec.createDecoderByType(trackFormat.getString(MediaFormat.KEY_MIME));
-            mediaCodec.configure(trackFormat, null, null,0);
+            mediaCodec.configure(trackFormat, null, null, 0);
             // 启动MediaCodec，等待传入数据
             mediaCodec.start();
 
@@ -42,6 +42,8 @@ public class AudioDecodeRunnable implements Runnable {
             boolean inputDone = false;
 
             FileOutputStream fos = new FileOutputStream(mAudioSavePath);
+
+            int progress = 0;
 
             while (!codeOver) {
                 if (!inputDone) {
@@ -55,12 +57,13 @@ public class AudioDecodeRunnable implements Runnable {
                         int readSampleDataSize = mMediaExtractor.readSampleData(inputBuffer, 0);
                         if (readSampleDataSize < 0) {
                             mediaCodec.queueInputBuffer(inputIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                            inputDone = true;
                         } else {
                             inputInfo.offset = 0;
                             inputInfo.size = readSampleDataSize;
                             inputInfo.flags = MediaCodec.BUFFER_FLAG_KEY_FRAME;
                             inputInfo.presentationTimeUs = mMediaExtractor.getSampleTime();
-                            Log.e(TAG,"往解码器写入数据，当前时间戳：" + inputInfo.presentationTimeUs);
+                            Log.e(TAG, "往解码器写入数据，当前时间戳：" + inputInfo.presentationTimeUs);
 
                             mediaCodec.queueInputBuffer(inputIndex, inputInfo.offset, inputInfo.size, inputInfo.presentationTimeUs, 0);
                             mMediaExtractor.advance();
@@ -90,7 +93,12 @@ public class AudioDecodeRunnable implements Runnable {
                         Log.i(TAG, "释放输出流缓冲区");
                         mediaCodec.releaseOutputBuffer(outputIndex, false);
 
-                        if ((decodeBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0){//编解码结束
+                        if (mListener != null) {
+                            progress += chunckPcm.length;
+                            mListener.decodeProgress(progress);
+                        }
+
+                        if ((decodeBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {//编解码结束
                             mMediaExtractor.release();
                             mediaCodec.stop();
                             mediaCodec.release();
@@ -103,13 +111,14 @@ public class AudioDecodeRunnable implements Runnable {
             }
 
             fos.close();
-            if (mListener != null){
+
+            if (mListener != null) {
                 mListener.decodeOver();
             }
 
         } catch (IOException e) {
             e.printStackTrace();
-            if (mListener != null){
+            if (mListener != null) {
                 mListener.decodeFail();
             }
         }
