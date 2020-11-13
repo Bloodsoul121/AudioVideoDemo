@@ -1,8 +1,9 @@
 package com.example.avd;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.example.avd.audio_encode_decode.AudioEncodeDecodeActivity;
@@ -10,16 +11,41 @@ import com.example.avd.audio_record.AudioRecordActivity;
 import com.example.avd.camera.CameraActivity;
 import com.example.avd.camera.reuse.CameraReuseActivity;
 import com.example.avd.flow.AudioMvFlowActivity;
+import com.example.avd.h264.demo.H264ParserActivity;
 import com.example.avd.mp.MPActivity;
 import com.example.avd.mv_encode_decode.MvEncodeDecodeActivity;
 import com.example.avd.mv_split_compose.MvSplitComposeActivity;
+import com.tbruyelle.rxpermissions2.RxPermissions;
 
-public class MainActivity extends AppCompatActivity {
+import io.reactivex.functions.Consumer;
+
+public class MainActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        requestPermissions();
+    }
+
+    @SuppressLint("CheckResult")
+    public void requestPermissions() {
+        RxPermissions rxPermissions = new RxPermissions(this);
+        rxPermissions.request(
+                Manifest.permission.CAMERA,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ).subscribe(new Consumer<Boolean>() {
+            @Override
+            public void accept(Boolean aBoolean) {
+                if (aBoolean) {
+                    toast("accept");
+                } else {
+                    toast("deny");
+                    finish();
+                }
+            }
+        });
     }
 
     public void clickBtn1(View view) {
@@ -52,5 +78,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void clickBtn8(View view) {
         startActivity(new Intent(this, AudioMvFlowActivity.class));
+    }
+
+    public void clickBtn9(View view) {
+        startActivity(new Intent(this, H264ParserActivity.class));
     }
 }

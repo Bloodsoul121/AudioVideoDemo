@@ -8,6 +8,7 @@ import android.util.Log;
 public class MainApplication extends Application implements Application.ActivityLifecycleCallbacks {
 
     private static final String TAG = MainApplication.class.getSimpleName();
+
     private static MainApplication myApplication = null;
 
     public static MainApplication getContext() {

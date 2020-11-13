@@ -16,9 +16,7 @@ import com.example.avd.R;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -86,51 +84,7 @@ public class AudioEncodeDecodeActivity extends BaseActivity {
     }
 
     public void copyMp3(View view) {
-        FileOutputStream fos = null;
-        InputStream is = null;
-        try {
-            File copyFile = new File(mSaveDir, "copy.mp3");
-
-            if (copyFile.exists()) {
-                copyFile.delete();
-            }
-            try {
-                copyFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            fos = new FileOutputStream(copyFile);
-            is = getAssets().open("music.mp3");
-
-            byte[] bytes = new byte[1024];
-            int len;
-
-            while ((len = is.read(bytes)) != -1) {
-                fos.write(bytes, 0, len);
-                fos.flush();
-            }
-
-            toast("拷贝成功");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        copyAssetsFile("music.mp3", mSaveDir, "copy.mp3");
     }
 
     public void setOriFilePath(View view) {

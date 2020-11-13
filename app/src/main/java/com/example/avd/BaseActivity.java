@@ -12,6 +12,11 @@ import android.widget.Toast;
 
 import com.example.avd.util.FileUtil;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 public abstract class BaseActivity extends AppCompatActivity {
 
     private Handler mHandler = new Handler();
@@ -60,6 +65,58 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     protected void onResultSystemSelectedFilePath(String filePath) {
         toast(filePath);
+    }
+
+    public void copyAssetsFile(String assetsFileName, File dir, String fileName) {
+        FileOutputStream fos = null;
+        InputStream is = null;
+        try {
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            File copyFile = new File(dir, fileName);
+
+            if (copyFile.exists()) {
+                copyFile.delete();
+            }
+            try {
+                copyFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            fos = new FileOutputStream(copyFile);
+            is = getAssets().open(assetsFileName);
+
+            byte[] bytes = new byte[1024];
+            int len;
+
+            while ((len = is.read(bytes)) != -1) {
+                fos.write(bytes, 0, len);
+                fos.flush();
+            }
+
+            toast("拷贝成功");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 }

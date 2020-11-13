@@ -1,66 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/use_camera"
-        style="@style/normal_button"
-        android:onClick="clickBtn1"
-        android:text="使用相机 Camera"
-        tools:ignore="HardcodedText" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-    <Button
-        android:id="@+id/reuse_camera"
-        style="@style/normal_button"
-        android:onClick="clickBtn2"
-        android:text="复用相机 CameraPreview"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/use_camera"
+            style="@style/normal_button"
+            android:onClick="clickBtn1"
+            android:text="使用相机 Camera"
+            tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/media_player"
-        style="@style/normal_button"
-        android:onClick="clickBtn3"
-        android:text="播放音频 MediaPlayer"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/reuse_camera"
+            style="@style/normal_button"
+            android:onClick="clickBtn2"
+            android:text="复用相机 CameraPreview"
+            tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/audio_record"
-        style="@style/normal_button"
-        android:onClick="clickBtn4"
-        android:text="录制音频 AudioRecord"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/media_player"
+            style="@style/normal_button"
+            android:onClick="clickBtn3"
+            android:text="播放音频 MediaPlayer"
+            tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/audio_encode_decode"
-        style="@style/normal_button"
-        android:onClick="clickBtn5"
-        android:text="音频 编解码 MediaExtractor MediaCodec"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/audio_record"
+            style="@style/normal_button"
+            android:onClick="clickBtn4"
+            android:text="录制音频 AudioRecord"
+            tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/mv"
-        style="@style/normal_button"
-        android:onClick="clickBtn6"
-        android:text="视频的分离与合成"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/audio_encode_decode"
+            style="@style/normal_button"
+            android:onClick="clickBtn5"
+            android:text="音频 编解码 MediaExtractor MediaCodec"
+            tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/mv_encode_decode"
-        style="@style/normal_button"
-        android:onClick="clickBtn7"
-        android:text="视频 H.264 硬编解"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/mv"
+            style="@style/normal_button"
+            android:onClick="clickBtn6"
+            android:text="视频的分离与合成"
+            tools:ignore="HardcodedText" />
 
-    <Button
-        android:id="@+id/audio_mv_flow"
-        style="@style/normal_button"
-        android:onClick="clickBtn8"
-        android:text="音视频录制流程"
-        tools:ignore="HardcodedText" />
+        <Button
+            android:id="@+id/mv_encode_decode"
+            style="@style/normal_button"
+            android:onClick="clickBtn7"
+            android:text="视频 H.264 硬编解"
+            tools:ignore="HardcodedText" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/audio_mv_flow"
+            style="@style/normal_button"
+            android:onClick="clickBtn8"
+            android:text="音视频录制流程"
+            tools:ignore="HardcodedText" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            android:background="#4A0277" />
+
+        <Button
+            style="@style/normal_button"
+            android:onClick="clickBtn9"
+            android:text="h264 播放片段"
+            tools:ignore="HardcodedText" />
+
+    </LinearLayout>
+
+</android.support.v4.widget.NestedScrollView>
