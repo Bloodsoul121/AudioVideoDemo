@@ -48,7 +48,7 @@ public class MvEncode264Activity extends AppCompatActivity implements AvcEncoder
         ButterKnife.bind(this);
         mCameraPreview.bindActivity(this);
         mCameraPreview.setCallback(this);
-        mPath.setText("/storage/emulated/0/audio_mv/");
+        mPath.setText("/storage/emulated/0/AudioH264/");
     }
 
     @Override

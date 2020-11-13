@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -21,8 +20,6 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.CaptureResult;
-import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -56,17 +53,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 
 public class MvEncodeCameraView extends TextureView {
 
     private static final String TAG = "CameraPreview";
     private static final String FRAGMENT_DIALOG = "dialog";
-    private static final int REQUEST_CAMERA_PERMISSION = 1;
 
     private int mRatioWidth = 0;
     private int mRatioHeight = 0;
@@ -82,14 +78,13 @@ public class MvEncodeCameraView extends TextureView {
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
-    /*****************************************************/
-    private int mImgReaderState = STATE_IMG_PREVIEW;
     private static final int STATE_IMG_PREVIEW = 0;
     private static final int STATE_IMG_RECORD = 1;
+
+    private int mImgReaderState = STATE_IMG_PREVIEW;
+
     private AvcEncoder mAvcEncoder;
-    private int mFrameRate = 30;
     private AvcEncoder.Callback mCallback;
-    /*****************************************************/
 
     /**
      * An additional thread for running tasks that shouldn't block the UI.
@@ -107,46 +102,9 @@ public class MvEncodeCameraView extends TextureView {
     private ImageReader mImageReader;
 
     /**
-     * This is the output file for our picture.
-     */
-    private File mFile;
-
-    /**
      * The {@link Size} of camera preview.
      */
     private Size mPreviewSize;
-
-    /**
-     * The current state of camera state for taking pictures.
-     *
-     * @see #mCaptureCallback
-     */
-    private int mState = STATE_PREVIEW;
-
-    /**
-     * Camera state: Showing camera preview.
-     */
-    private static final int STATE_PREVIEW = 0;
-
-    /**
-     * Camera state: Waiting for the focus to be locked.
-     */
-    private static final int STATE_WAITING_LOCK = 1;
-
-    /**
-     * Camera state: Waiting for the exposure to be precapture state.
-     */
-    private static final int STATE_WAITING_PRECAPTURE = 2;
-
-    /**
-     * Camera state: Waiting for the exposure state to be something other than precapture.
-     */
-    private static final int STATE_WAITING_NON_PRECAPTURE = 3;
-
-    /**
-     * Camera state: Picture was taken.
-     */
-    private static final int STATE_PICTURE_TAKEN = 4;
 
     /**
      * Max preview width that is guaranteed by Camera2 API
@@ -157,16 +115,6 @@ public class MvEncodeCameraView extends TextureView {
      * Max preview height that is guaranteed by Camera2 API
      */
     private static final int MAX_PREVIEW_HEIGHT = 1080;
-
-    /**
-     * Orientation of the camera sensor
-     */
-    private int mSensorOrientation;
-
-    /**
-     * Whether the current camera device supports Flash or not.
-     */
-    private boolean mFlashSupported;
 
     /**
      * ID of the current {@link CameraDevice}. 0 后置，1 前置
@@ -202,8 +150,7 @@ public class MvEncodeCameraView extends TextureView {
      * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
      * {@link TextureView}.
      */
-    private final TextureView.SurfaceTextureListener mSurfaceTextureListener
-            = new TextureView.SurfaceTextureListener() {
+    private final TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
@@ -230,8 +177,7 @@ public class MvEncodeCameraView extends TextureView {
      * This a callback object for the {@link ImageReader}. "onImageAvailable" will be called when a
      * still image is ready to be saved.
      */
-    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
-            = new ImageReader.OnImageAvailableListener() {
+    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
 
         @Override
         public void onImageAvailable(ImageReader reader) {
@@ -318,8 +264,7 @@ public class MvEncodeCameraView extends TextureView {
 //                    }
 
                         if (mAvcEncoder == null) {
-//                        mAvcEncoder = new AvcEncoder(mPreviewSize.getWidth(), mPreviewSize.getHeight(), mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
-                            mAvcEncoder = new AvcEncoder(w, h, mFrameRate, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
+                            mAvcEncoder = new AvcEncoder(w, h, 30, getOutputMediaFile(MEDIA_TYPE_VIDEO), false);
                             mAvcEncoder.startEncoderThread();
                             mAvcEncoder.setCallback(mCallback);
                             Toast.makeText(mContext, "开始录制视频", Toast.LENGTH_SHORT).show();
@@ -370,74 +315,6 @@ public class MvEncodeCameraView extends TextureView {
 
     };
 
-    /**
-     * A {@link CameraCaptureSession.CaptureCallback} that handles events related to JPEG capture.
-     */
-    private CameraCaptureSession.CaptureCallback mCaptureCallback
-            = new CameraCaptureSession.CaptureCallback() {
-
-        private void process(CaptureResult result) {
-            switch (mState) {
-                case STATE_PREVIEW: {
-                    // We have nothing to do when the camera preview is working normally.
-                    break;
-                }
-                case STATE_WAITING_LOCK: {
-                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-                    if (afState == null) {
-                        captureStillPicture();
-                    } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState ||
-                            CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState) {
-                        // CONTROL_AE_STATE can be null on some devices
-                        Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                        if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
-                            mState = STATE_PICTURE_TAKEN;
-                            captureStillPicture();
-                        } else {
-                            runPrecaptureSequence();
-                        }
-                    }
-                    break;
-                }
-                case STATE_WAITING_PRECAPTURE: {
-                    // CONTROL_AE_STATE can be null on some devices
-                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                    if (aeState == null ||
-                            aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
-                            aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED) {
-                        mState = STATE_WAITING_NON_PRECAPTURE;
-                    }
-                    break;
-                }
-                case STATE_WAITING_NON_PRECAPTURE: {
-                    // CONTROL_AE_STATE can be null on some devices
-                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
-                    if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
-                        mState = STATE_PICTURE_TAKEN;
-                        captureStillPicture();
-                    }
-                    break;
-                }
-            }
-        }
-
-        @Override
-        public void onCaptureProgressed(@NonNull CameraCaptureSession session,
-                                        @NonNull CaptureRequest request,
-                                        @NonNull CaptureResult partialResult) {
-            process(partialResult);
-        }
-
-        @Override
-        public void onCaptureCompleted(@NonNull CameraCaptureSession session,
-                                       @NonNull CaptureRequest request,
-                                       @NonNull TotalCaptureResult result) {
-            process(result);
-        }
-
-    };
-
-
     public MvEncodeCameraView(Context context) {
         this(context, null);
     }
@@ -454,7 +331,6 @@ public class MvEncodeCameraView extends TextureView {
     private void init(Context context) {
         setKeepScreenOn(true);
         this.mContext = context;
-        this.mFile = new File(mContext.getExternalFilesDir(null), "pic.jpg");
     }
 
     public void bindActivity(FragmentActivity activity) {
@@ -599,11 +475,6 @@ public class MvEncodeCameraView extends TextureView {
     }
 
     private void requestCameraPermission() {
-//        if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-//            new ConfirmationDialog().show(getChildFragmentManager(), FRAGMENT_DIALOG);
-//        } else {
-//            requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-//        }
         // TODO: 2019/10/28  申请相机权限
     }
 
@@ -618,8 +489,7 @@ public class MvEncodeCameraView extends TextureView {
         CameraManager manager = (CameraManager) mContext.getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : manager.getCameraIdList()) {
-                CameraCharacteristics characteristics
-                        = manager.getCameraCharacteristics(cameraId);
+                CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
 
                 // We don't use a front facing camera in this sample.
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
@@ -627,37 +497,38 @@ public class MvEncodeCameraView extends TextureView {
                     continue;
                 }
 
-                StreamConfigurationMap map = characteristics.get(
-                        CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 if (map == null) {
                     continue;
                 }
 
                 // For still image captures, we use the largest available size.
-                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)), new CompareSizesByArea());
-//                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, /*maxImages*/2);
-//                mImageReader = ImageReader.newInstance(width, height, ImageFormat.YV12, 1);
 //                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.YV12)), new CompareSizesByArea());
-//                Size largest = new Size(640, 640);
-                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.YUV_420_888, 2);
+//                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)), new CompareSizesByArea());
+//                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.JPEG, /*maxImages*/2);
+//                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.YUV_420_888, 2);
+//                mImageReader = ImageReader.newInstance(width, height, ImageFormat.YV12, 1);
+                // 这里格式有点问题，应该配置 YV12，但是会报错
+                Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.YUV_420_888)), new CompareSizesByArea());
+                mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(), ImageFormat.YUV_420_888, 1);
                 mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.
                 int displayRotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
                 //noinspection ConstantConditions
-                mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+                int sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
                 boolean swappedDimensions = false;
                 switch (displayRotation) {
                     case Surface.ROTATION_0:
                     case Surface.ROTATION_180:
-                        if (mSensorOrientation == 90 || mSensorOrientation == 270) {
+                        if (sensorOrientation == 90 || sensorOrientation == 270) {
                             swappedDimensions = true;
                         }
                         break;
                     case Surface.ROTATION_90:
                     case Surface.ROTATION_270:
-                        if (mSensorOrientation == 0 || mSensorOrientation == 180) {
+                        if (sensorOrientation == 0 || sensorOrientation == 180) {
                             swappedDimensions = true;
                         }
                         break;
@@ -693,7 +564,6 @@ public class MvEncodeCameraView extends TextureView {
                 mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
                         rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
                         maxPreviewHeight, largest);
-//                mPreviewSize = new Size(largest.getWidth(), largest.getHeight());
 
                 // We fit the aspect ratio of TextureView to the size of preview we picked.
                 int orientation = getResources().getConfiguration().orientation;
@@ -702,10 +572,6 @@ public class MvEncodeCameraView extends TextureView {
                 } else {
                     setAspectRatio(mPreviewSize.getHeight(), mPreviewSize.getWidth());
                 }
-
-                // Check if the flash is supported.
-                Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
-                mFlashSupported = available == null ? false : available;
 
                 mCameraId = cameraId;
                 return;
@@ -823,8 +689,7 @@ public class MvEncodeCameraView extends TextureView {
             mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
 
             // Here, we create a CameraCaptureSession for camera preview.
-            mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
-                    new CameraCaptureSession.StateCallback() {
+            mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()), new CameraCaptureSession.StateCallback() {
 
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
@@ -838,15 +703,13 @@ public class MvEncodeCameraView extends TextureView {
                             try {
 //                                // Auto focus should be continuous for camera preview.
 //                                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-//                                // Flash is automatically enabled when necessary.
-//                                setAutoFlash(mPreviewRequestBuilder);
 
                                 //设置相机的控制模式为自动，方法具体含义点进去（auto-exposure, auto-white-balance, auto-focus）
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
 
                                 // Finally, we start displaying the camera preview.
                                 mPreviewRequest = mPreviewRequestBuilder.build();
-                                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+                                mCaptureSession.setRepeatingRequest(mPreviewRequest, null, mBackgroundHandler);
                             } catch (CameraAccessException e) {
                                 e.printStackTrace();
                             }
@@ -863,132 +726,19 @@ public class MvEncodeCameraView extends TextureView {
         }
     }
 
-    /**
-     * Run the precapture sequence for capturing a still image. This method should be called when
-     * we get a response in {@link #mCaptureCallback} from {@link #lockFocus()}.
-     */
-    private void runPrecaptureSequence() {
-        try {
-            // This is how to tell the camera to trigger.
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
-                    CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            // Tell #mCaptureCallback to wait for the precapture sequence to be set.
-            mState = STATE_WAITING_PRECAPTURE;
-            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
+    public boolean toggleVideo() {
+        if (mImgReaderState == STATE_IMG_PREVIEW) {
+            mImgReaderState = STATE_IMG_RECORD;
+            return true;
+        } else {
+            mImgReaderState = STATE_IMG_PREVIEW;
+            return false;
         }
     }
 
-    /**
-     * Capture a still picture. This method should be called when we get a response in
-     * {@link #mCaptureCallback} from both {@link #lockFocus()}.
-     */
-    private void captureStillPicture() {
-        try {
-            final Activity activity = mActivity;
-            if (null == activity || null == mCameraDevice) {
-                return;
-            }
-            // This is the CaptureRequest.Builder that we use to take a picture.
-            final CaptureRequest.Builder captureBuilder =
-                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-            captureBuilder.addTarget(mImageReader.getSurface());
-
-            // Use the same AE and AF modes as the preview.
-            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
-                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            setAutoFlash(captureBuilder);
-
-            // Orientation
-            int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
-
-            CameraCaptureSession.CaptureCallback CaptureCallback
-                    = new CameraCaptureSession.CaptureCallback() {
-
-                @Override
-                public void onCaptureCompleted(@NonNull CameraCaptureSession session,
-                                               @NonNull CaptureRequest request,
-                                               @NonNull TotalCaptureResult result) {
-                    showToast("Saved: " + mFile);
-                    Log.d(TAG, mFile.toString());
-                    unlockFocus();
-                }
-            };
-
-            mCaptureSession.stopRepeating();
-            mCaptureSession.abortCaptures();
-            mCaptureSession.capture(captureBuilder.build(), CaptureCallback, null);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Initiate a still image capture.
-     */
-    private void takePicture() {
-        lockFocus();
-    }
-
-    /**
-     * Lock the focus as the first step for a still image capture.
-     */
-    private void lockFocus() {
-        try {
-            // This is how to tell the camera to lock focus.
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_START);
-            // Tell #mCaptureCallback to wait for the lock.
-            mState = STATE_WAITING_LOCK;
-            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
-        if (mFlashSupported) {
-            requestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-        }
-    }
-
-    /**
-     * Retrieves the JPEG orientation from the specified screen rotation.
-     *
-     * @param rotation The screen rotation.
-     * @return The JPEG orientation (one of 0, 90, 270, and 360)
-     */
-    private int getOrientation(int rotation) {
-        // Sensor orientation is 90 for most devices, or 270 for some devices (eg. Nexus 5X)
-        // We have to take that into account and rotate JPEG properly.
-        // For devices with orientation of 90, we simply return our mapping from ORIENTATIONS.
-        // For devices with orientation of 270, we need to rotate the JPEG 180 degrees.
-        return (ORIENTATIONS.get(rotation) + mSensorOrientation + 270) % 360;
-    }
-
-    /**
-     * Unlock the focus. This method should be called when still image capture sequence is
-     * finished.
-     */
-    private void unlockFocus() {
-        try {
-            // Reset the auto-focus trigger
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
-            setAutoFlash(mPreviewRequestBuilder);
-            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
-            // After this, the camera will go back to the normal state of preview.
-            mState = STATE_PREVIEW;
-            mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
-                    mBackgroundHandler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
+    public void closeVideo() {
+        mImgReaderState = STATE_IMG_PREVIEW;
+        onPause();
     }
 
     private String getString(@StringRes int resId) {
@@ -1046,35 +796,11 @@ public class MvEncodeCameraView extends TextureView {
 
     }
 
-    public boolean toggleVideo() {
-        if (mImgReaderState == STATE_PREVIEW) {
-            mImgReaderState = STATE_IMG_RECORD;
-            return true;
-        } else {
-            mImgReaderState = STATE_IMG_PREVIEW;
-            return false;
-        }
-    }
-
-    public void closeVideo() {
-        mImgReaderState = STATE_IMG_PREVIEW;
-        onPause();
-    }
-
     /**
      * 获取输出照片视频路径
      */
     public File getOutputMediaFile(int mediaType) {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String fileName = null;
-        File storageDir = new File(Environment.getExternalStorageDirectory(), "audio_mv");
-        if (mediaType == MEDIA_TYPE_IMAGE) {
-            fileName = "JPEG_" + timeStamp + "_";
-//            storageDir = mContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        } else if (mediaType == MEDIA_TYPE_VIDEO) {
-            fileName = "MP4_" + timeStamp + "_";
-//            storageDir = mContext.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
-        }
+        File storageDir = new File(Environment.getExternalStorageDirectory(), "AudioH264");
 
         // Create the storage directory if it does not exist
         if (!storageDir.exists()) {
@@ -1084,15 +810,12 @@ public class MvEncodeCameraView extends TextureView {
             }
         }
 
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+        String fileName = "MP4_" + timeStamp + "_";
+
         File file = null;
         try {
-//            file = File.createTempFile(
-//                    fileName,  /* prefix */
-//                    (mediaType == MEDIA_TYPE_IMAGE) ? ".jpg" : ".h264",         /* suffix */
-//                    storageDir      /* directory */
-//            );
-
-            file = new File(storageDir, fileName.substring(0, fileName.length() - 1) + ((mediaType == MEDIA_TYPE_IMAGE) ? ".jpg" : ".h264"));
+            file = new File(storageDir, fileName.substring(0, fileName.length() - 1) + ".h264");
             if (file.exists()) {
                 file.delete();
             }

@@ -42,7 +42,7 @@ public class AudioEncodeDecodeActivity extends BaseActivity {
         setContentView(R.layout.activity_audio_encode_decode);
         ButterKnife.bind(this);
 
-        mSaveDir = new File(Environment.getExternalStorageDirectory(), "Audio_Extractor");
+        mSaveDir = new File(Environment.getExternalStorageDirectory(), "AudioExtractor");
         if (!mSaveDir.exists()) {
             mSaveDir.mkdirs();
         }

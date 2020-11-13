@@ -6,6 +6,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import android.view.Surface;
 
 import com.example.avd.ActivityLifeManager;
@@ -130,23 +131,21 @@ public class AvcEncoder {
                                 byte[] yuv420sp = new byte[mWidth * mHeight * 3 / 2];
                                 NV21ToNV12(input, yuv420sp, mWidth, mHeight);
                                 input = yuv420sp;
-                            } else {//Camera 2
+                            } else {//Camera2  YV12
                                 byte[] yuv420sp = new byte[mWidth * mHeight * 3 / 2];
                                 YV12toNV12(input, yuv420sp, mWidth, mHeight);
                                 input = yuv420sp;
                             }
                         }
 
-
+                        // 回调，测试图片是否正常
                         if (input != null) {
                             if (mCallback != null) {
                                 mCallback.onCaptureBitmap(BitmapUtil.getBitmapImageFromYUV(input, mWidth, mHeight));
                             }
                             // 尝试旋转90度
                             input = RotateYuvUtil.rotateYUV420SP3(input, mWidth, mHeight);
-//                            input = rotateYUV240SP2(input, mWidth, mHeight);
                             if (mCallback != null) {
-//                                mCallback.onCaptureRotateBitmap(BitmapUtil.getBitmapImageFromYUV(rotateYUV420SP(input, mWidth, mHeight), mHeight, mWidth));
                                 mCallback.onCaptureRotateBitmap(BitmapUtil.getBitmapImageFromYUV(input, mHeight, mWidth));
                             }
                         }
@@ -154,6 +153,7 @@ public class AvcEncoder {
                         if (input != null) {
                             // 获取输入队列空闲数组下标
                             int inputBufferIndex = mMediaCodec.dequeueInputBuffer(-1);
+                            Log.i(TAG, "inputBufferIndex " + inputBufferIndex);
                             if (inputBufferIndex >= 0) {
                                 pts = computePresentationTime(generateIndex);
                                 ByteBuffer inputBuffer = mMediaCodec.getInputBuffer(inputBufferIndex);
@@ -166,6 +166,7 @@ public class AvcEncoder {
                             // 写入到本地文件
                             MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
                             int outputBufferIndex = mMediaCodec.dequeueOutputBuffer(bufferInfo, TIMEOUT_USEC);
+                            Log.i(TAG, "outputBufferIndex " + outputBufferIndex);
                             while (outputBufferIndex >= 0) {
                                 ByteBuffer outputBuffer = mMediaCodec.getOutputBuffer(outputBufferIndex);
                                 byte[] outData = new byte[bufferInfo.size];
