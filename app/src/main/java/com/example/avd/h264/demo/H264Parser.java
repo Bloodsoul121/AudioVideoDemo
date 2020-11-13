@@ -87,6 +87,8 @@ public class H264Parser implements Runnable {
         return mIsRunning;
     }
 
+    // 如果播放片段没有I帧，则报错
+
     @Override
     public void run() {
         mIsRunning = true;
