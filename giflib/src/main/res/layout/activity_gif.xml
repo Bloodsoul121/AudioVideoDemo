@@ -9,12 +9,19 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:onClick="copyGif"
+        android:text="copy Gif" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:onClick="loadGif"
         android:text="加载 Gif" />
 
     <ImageView
         android:id="@+id/iv"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:background="#000000" />
 
 </LinearLayout>
