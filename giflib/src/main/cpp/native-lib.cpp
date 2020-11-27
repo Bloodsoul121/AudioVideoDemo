@@ -28,7 +28,7 @@ struct GifBean {
     int *delays;
 };
 
-void drawFrame(GifFileType *pType, AndroidBitmapInfo info, void *pVoid);
+void drawFrame(GifFileType *gifFileType, AndroidBitmapInfo info, void *pixels);
 
 extern "C"
 JNIEXPORT jlong JNICALL
