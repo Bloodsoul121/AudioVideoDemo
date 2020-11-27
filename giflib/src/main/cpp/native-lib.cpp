@@ -9,6 +9,17 @@ extern "C" {
 #include "gif_lib.h"
 }
 
+// 引入log头文件
+#include  <android/log.h>
+// log标签
+#define  TAG    "gif_native"
+// 定义info信息
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,TAG,__VA_ARGS__)
+// 定义debug信息
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
+// 定义error信息
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,TAG,__VA_ARGS__)
+
 #define  argb(a, r, g, b) ( ((a) & 0xff) << 24 ) | ( ((b) & 0xff) << 16 ) | ( ((g) & 0xff) << 8 ) | ((r) & 0xff)
 
 struct GifBean {
@@ -91,19 +102,22 @@ void drawFrame(GifFileType *gifFileType, AndroidBitmapInfo bitmapInfo, void *pix
     GifByteType *bits = savedImage.RasterBits; // 像素集
     ColorMapObject *colorMapObject = gifImageDesc.ColorMap; // 颜色字典，索引字典
 
-    int *px = (int *) pixels;
-    int *line;
+    int *px = (int *) pixels; // 强转为 int * ， 感觉操作还是一位数组
+//    int *line;
     for (int y = gifImageDesc.Top; y < gifImageDesc.Top + gifImageDesc.Height; ++y) { // 列
-        line = px;
+        // 重新赋值，这里相当于把数组的索引切到下一行了
+//        line = px;
         for (int x = gifImageDesc.Left; x < gifImageDesc.Left + gifImageDesc.Width; ++x) { // 行
             int pointerPixel = (y - gifImageDesc.Top) * gifImageDesc.Width + (x - gifImageDesc.Left);
-            GifByteType gifByteType = bits[pointerPixel];
+            GifByteType gifByteType = bits[pointerPixel]; // 1个字节
             GifColorType gifColorType = colorMapObject->Colors[gifByteType];
-            line[x] = argb(255, gifColorType.Red, gifColorType.Green, gifColorType.Blue);
+            px[x] = argb(255, gifColorType.Red, gifColorType.Green, gifColorType.Blue); // 4个字节，为什么是从x索引开始赋值
         }
         // 切换到下一行
         px = (int *) ((char *) px + bitmapInfo.stride);
     }
+
+    LOGI("drawFrame : %d , %d", gifImageDesc.Width, bitmapInfo.stride); // drawFrame : 813 , 3252
 }
 
 extern "C"
