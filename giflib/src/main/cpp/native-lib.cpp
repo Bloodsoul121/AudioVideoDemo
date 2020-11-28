@@ -102,7 +102,7 @@ void drawFrame(GifFileType *gifFileType, AndroidBitmapInfo bitmapInfo, void *pix
     GifByteType *bits = savedImage.RasterBits; // 像素集
     ColorMapObject *colorMapObject = gifImageDesc.ColorMap; // 颜色字典，索引字典
 
-    int *px = (int *) pixels; // 强转为 int * ， 感觉操作还是一位数组
+    int *px = (int *) pixels; // 强转为 int * ， 操作二维数组，px 相当于第一个一维数组的第一个元素的起始指针
 //    int *line;
     for (int y = gifImageDesc.Top; y < gifImageDesc.Top + gifImageDesc.Height; ++y) { // 列
         // 重新赋值，这里相当于把数组的索引切到下一行了
@@ -112,10 +112,11 @@ void drawFrame(GifFileType *gifFileType, AndroidBitmapInfo bitmapInfo, void *pix
             GifByteType gifByteType = bits[pointerPixel]; // 1个字节
             GifColorType gifColorType = colorMapObject->Colors[gifByteType];
             px[x] = argb(255, gifColorType.Red, gifColorType.Green, gifColorType.Blue); // 4个字节，为什么是从x索引开始赋值
+//            px[x + gifImageDesc.Width * (y - gifImageDesc.Top)] = argb(255, gifColorType.Red, gifColorType.Green, gifColorType.Blue); // 这个也是可行的
         }
         // 切换到下一行
 //        px = (int *) ((char *) px + bitmapInfo.stride);
-        px = (int *) (px + gifImageDesc.Width);
+        px = px + gifImageDesc.Width;
     }
 
     LOGI("drawFrame : %d , %d", gifImageDesc.Width, bitmapInfo.stride); // drawFrame : 813 , 3252
