@@ -114,7 +114,8 @@ void drawFrame(GifFileType *gifFileType, AndroidBitmapInfo bitmapInfo, void *pix
             px[x] = argb(255, gifColorType.Red, gifColorType.Green, gifColorType.Blue); // 4个字节，为什么是从x索引开始赋值
         }
         // 切换到下一行
-        px = (int *) ((char *) px + bitmapInfo.stride);
+//        px = (int *) ((char *) px + bitmapInfo.stride);
+        px = (int *) (px + gifImageDesc.Width);
     }
 
     LOGI("drawFrame : %d , %d", gifImageDesc.Width, bitmapInfo.stride); // drawFrame : 813 , 3252

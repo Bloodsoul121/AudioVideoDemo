@@ -10,15 +10,23 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
+
+import java.io.File;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.File;
-
 public class GifActivity extends AppCompatActivity {
 
     private static final String TAG = GifActivity.class.getSimpleName();
+
+    private static final int MAIN_TASK_RESIZE = 0;
+    private static final int MAIN_TASK_SHOW_FRAME = 1;
+
+    private static final int BACK_TASK_PREPARE_GIF = 0;
+    private static final int BACK_TASK_LOAD_GIF = 1;
+    private static final int BACK_TASK_UPDATE_FRAME = 2;
 
     private ImageView mIv;
     private File mFilesDir;
@@ -27,9 +35,11 @@ public class GifActivity extends AppCompatActivity {
     private Bitmap mBitmap;
     private GifHandler mGifHandler;
 
-    private HandlerThread mHandlerThread;
-    private Handler mBackHandler;
     private Handler mMainHandler;
+    private Handler mBackHandler;
+    private HandlerThread mBackThread;
+
+    private boolean mIsPrepared;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,22 +53,34 @@ public class GifActivity extends AppCompatActivity {
         mMainHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(@NonNull Message msg) {
-                super.handleMessage(msg);
-                // 将bitmap显示到view上
-                mIv.setImageBitmap(mBitmap);
+                switch (msg.what) {
+                    case MAIN_TASK_RESIZE:
+                        ViewGroup.LayoutParams layoutParams = mIv.getLayoutParams();
+                        layoutParams.width = msg.arg1;
+                        layoutParams.height = msg.arg2;
+                        mIv.setLayoutParams(layoutParams);
+                        break;
+                    case MAIN_TASK_SHOW_FRAME:
+                        mIv.setImageBitmap(mBitmap);
+                        break;
+                }
+
             }
         };
 
-        mHandlerThread = new HandlerThread("gif-thread");
-        mHandlerThread.start();
-        mBackHandler = new Handler(mHandlerThread.getLooper()) {
+        mBackThread = new HandlerThread("gif-thread");
+        mBackThread.start();
+        mBackHandler = new Handler(mBackThread.getLooper()) {
             @Override
             public void handleMessage(@NonNull Message msg) {
                 switch (msg.what) {
-                    case 0:
+                    case BACK_TASK_PREPARE_GIF:
+                        prepareGif();
+                        break;
+                    case BACK_TASK_LOAD_GIF:
                         loadGif();
                         break;
-                    case 1:
+                    case BACK_TASK_UPDATE_FRAME:
                         updateFrame();
                         break;
                 }
@@ -66,15 +88,28 @@ public class GifActivity extends AppCompatActivity {
         };
     }
 
+    // 复制gif文件
     public void copyGif(View view) {
         FileUtil.copyfile(this, mFilesDir, mGifName);
     }
 
-    public void loadGif(View view) {
-        mBackHandler.sendEmptyMessage(0);
+    // 预加载
+    public void prepareLoadGif(View view) {
+        mBackHandler.sendEmptyMessage(BACK_TASK_PREPARE_GIF);
     }
 
-    public void loadGif() {
+    // 播放gif文件
+    public void playGif(View view) {
+        mBackHandler.sendEmptyMessage(BACK_TASK_LOAD_GIF);
+    }
+
+    private void prepareGif() {
+        if (mIsPrepared) {
+            return;
+        }
+
+        long startTime = System.currentTimeMillis();
+
         // 将gif文件加载进来
         File file = new File(mFilesDir, mGifName);
         boolean exists = file.exists();
@@ -86,46 +121,43 @@ public class GifActivity extends AppCompatActivity {
         final int gifHeight = mGifHandler.getHeight();
         Log.i(TAG, "gifWidth : " + gifWidth + " , gifHeight : " + gifHeight);
 
-        // 根据gif图大小定制view
-        mMainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                ViewGroup.LayoutParams layoutParams = mIv.getLayoutParams();
-                layoutParams.width = gifWidth;
-                layoutParams.height = gifHeight;
-                mIv.setLayoutParams(layoutParams);
-            }
-        });
-
         // 创建bitmap
         mBitmap = Bitmap.createBitmap(gifWidth, gifHeight, Bitmap.Config.ARGB_8888);
 
-        // 将gif的每一帧图像绘制到bitmap上
-        int delay = mGifHandler.updateFrame(mBitmap);
+        // 根据gif图大小定制view
+        Message message = Message.obtain();
+        message.arg1 = gifWidth;
+        message.arg2 = gifHeight;
+        mMainHandler.sendMessage(message);
 
-        // 将bitmap显示到view上
-//        mIv.setImageBitmap(mBitmap);
+        mIsPrepared = true;
 
-//        mMainHandler.postDelayed(this, delay);
+        long subTime = System.currentTimeMillis() - startTime;
+        Toast.makeText(this, "预加载，耗时：" + subTime + "ms", Toast.LENGTH_SHORT).show();
+    }
 
-        mMainHandler.sendEmptyMessage(0);
-        mBackHandler.sendEmptyMessageDelayed(1, delay);
+    private void loadGif() {
+        // 准备工作
+        prepareGif();
+        // 绘制
+        updateFrame();
     }
 
     private void updateFrame() {
+        // 将gif的每一帧图像绘制到bitmap上
         int delay = mGifHandler.updateFrame(mBitmap);
-//        mIv.setImageBitmap(mBitmap);
-//        mMainHandler.postDelayed(this, delay);
-
-        mMainHandler.sendEmptyMessage(0);
-        mBackHandler.sendEmptyMessageDelayed(1, delay);
+        // 将bitmap显示到view上
+        mMainHandler.sendEmptyMessage(MAIN_TASK_SHOW_FRAME);
+        // delay之后开始下一次绘制
+        mBackHandler.sendEmptyMessageDelayed(BACK_TASK_UPDATE_FRAME, delay);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mMainHandler.removeCallbacksAndMessages(null);
-        mHandlerThread.quit();
+        mBackHandler.removeCallbacksAndMessages(null);
+        mBackThread.quit();
     }
 
 }

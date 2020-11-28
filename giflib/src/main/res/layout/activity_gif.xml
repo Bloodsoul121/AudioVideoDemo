@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".GifActivity">
+    tools:context=".GifActivity"
+    tools:ignore="HardcodedText">
 
     <Button
         android:layout_width="match_parent"
@@ -15,8 +16,14 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="loadGif"
-        android:text="加载 Gif" />
+        android:onClick="prepareLoadGif"
+        android:text="预加载 Gif" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="playGif"
+        android:text="播放 Gif" />
 
     <ImageView
         android:id="@+id/iv"
