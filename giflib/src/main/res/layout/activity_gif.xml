@@ -10,8 +10,14 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="copyGif"
-        android:text="copy Gif" />
+        android:onClick="copyGif89A"
+        android:text="copy Gif（89A）" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="copyGif87A"
+        android:text="copy Gif（87A）" />
 
     <Button
         android:layout_width="match_parent"

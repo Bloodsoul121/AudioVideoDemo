@@ -21,6 +21,9 @@ extern "C" {
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR,TAG,__VA_ARGS__)
 
 #define  argb(a, r, g, b) ( ((a) & 0xff) << 24 ) | ( ((b) & 0xff) << 16 ) | ( ((g) & 0xff) << 8 ) | ((r) & 0xff)
+#define  dispose(ext) (((ext)->Bytes[0] & 0x1c) >> 2)
+#define  trans_index(ext) ((ext)->Bytes[3])
+#define  transparency(ext) ((ext)->Bytes[0] & 1)
 
 struct GifBean {
     int current_frame; // 当前帧
@@ -122,6 +125,205 @@ void drawFrame(GifFileType *gifFileType, AndroidBitmapInfo bitmapInfo, void *pix
     LOGI("drawFrame : %d , %d", gifImageDesc.Width, bitmapInfo.stride); // drawFrame : 813 , 3252
 }
 
+int drawFrame(GifFileType* gif,AndroidBitmapInfo  info,   void* pixels,  bool force_dispose_1) {
+    GifColorType *bg;
+
+    GifColorType *color;
+
+    SavedImage * frame;
+
+    ExtensionBlock * ext = 0;
+
+    GifImageDesc * frameInfo;
+
+    ColorMapObject * colorMap;
+
+    int *line;
+
+    int width, height,x,y,j,loc,n,inc,p;
+
+    void* px;
+
+    GifBean *gifBean = static_cast<GifBean *>(gif->UserData);
+
+    width = gif->SWidth;
+
+    height = gif->SHeight;
+    frame = &(gif->SavedImages[gifBean->current_frame]);
+
+    frameInfo = &(frame->ImageDesc);
+
+    if (frameInfo->ColorMap) {
+
+        colorMap = frameInfo->ColorMap;
+
+    } else {
+
+        colorMap = gif->SColorMap;
+
+    }
+
+
+
+    bg = &colorMap->Colors[gif->SBackGroundColor];
+
+
+
+    for (j=0; j<frame->ExtensionBlockCount; j++) {
+
+        if (frame->ExtensionBlocks[j].Function == GRAPHICS_EXT_FUNC_CODE) {
+
+            ext = &(frame->ExtensionBlocks[j]);
+
+            break;
+
+        }
+
+    }
+    // For dispose = 1, we assume its been drawn
+    px = pixels;
+    if (ext && dispose(ext) == 1 && force_dispose_1 && gifBean->current_frame > 0) {
+        gifBean->current_frame=gifBean->current_frame-1,
+                drawFrame(gif , info, pixels,  true);
+    }
+
+    else if (ext && dispose(ext) == 2 && bg) {
+
+        for (y=0; y<height; y++) {
+
+            line = (int*) px;
+
+            for (x=0; x<width; x++) {
+
+                line[x] = argb(255, bg->Red, bg->Green, bg->Blue);
+
+            }
+
+            px = (int *) ((char*)px + info.stride);
+
+        }
+
+    } else if (ext && dispose(ext) == 3 && gifBean->current_frame > 1) {
+        gifBean->current_frame=gifBean->current_frame-2,
+                drawFrame(gif,  info, pixels,  true);
+
+    }
+    px = pixels;
+    if (frameInfo->Interlace) {
+
+        n = 0;
+
+        inc = 8;
+
+        p = 0;
+
+        px = (int *) ((char*)px + info.stride * frameInfo->Top);
+
+        for (y=frameInfo->Top; y<frameInfo->Top+frameInfo->Height; y++) {
+
+            for (x=frameInfo->Left; x<frameInfo->Left+frameInfo->Width; x++) {
+
+                loc = (y - frameInfo->Top)*frameInfo->Width + (x - frameInfo->Left);
+
+                if (ext && frame->RasterBits[loc] == trans_index(ext) && transparency(ext)) {
+
+                    continue;
+
+                }
+
+
+
+                color = (ext && frame->RasterBits[loc] == trans_index(ext)) ? bg : &colorMap->Colors[frame->RasterBits[loc]];
+
+                if (color)
+
+                    line[x] = argb(255, color->Red, color->Green, color->Blue);
+
+            }
+
+            px = (int *) ((char*)px + info.stride * inc);
+
+            n += inc;
+
+            if (n >= frameInfo->Height) {
+
+                n = 0;
+
+                switch(p) {
+
+                    case 0:
+
+                        px = (int *) ((char *)pixels + info.stride * (4 + frameInfo->Top));
+
+                        inc = 8;
+
+                        p++;
+
+                        break;
+
+                    case 1:
+
+                        px = (int *) ((char *)pixels + info.stride * (2 + frameInfo->Top));
+
+                        inc = 4;
+
+                        p++;
+
+                        break;
+
+                    case 2:
+
+                        px = (int *) ((char *)pixels + info.stride * (1 + frameInfo->Top));
+
+                        inc = 2;
+
+                        p++;
+
+                }
+
+            }
+
+        }
+
+    }
+
+    else {
+
+        px = (int *) ((char*)px + info.stride * frameInfo->Top);
+
+        for (y=frameInfo->Top; y<frameInfo->Top+frameInfo->Height; y++) {
+
+            line = (int*) px;
+
+            for (x=frameInfo->Left; x<frameInfo->Left+frameInfo->Width; x++) {
+
+                loc = (y - frameInfo->Top)*frameInfo->Width + (x - frameInfo->Left);
+
+                if (ext && frame->RasterBits[loc] == trans_index(ext) && transparency(ext)) {
+
+                    continue;
+
+                }
+
+                color = (ext && frame->RasterBits[loc] == trans_index(ext)) ? bg : &colorMap->Colors[frame->RasterBits[loc]];
+
+                if (color)
+
+                    line[x] = argb(255, color->Red, color->Green, color->Blue);
+
+            }
+
+            px = (int *) ((char*)px + info.stride);
+
+        }
+    }
+    GraphicsControlBlock gcb;//获取控制信息
+    DGifSavedExtensionToGCB(gif,gifBean->current_frame,&gcb);
+    int delay=gcb.DelayTime * 10;
+    LOGE("delay %d",delay);
+    return delay;
+}
+
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_blood_giflib_GifHandler_native_1updateFrame(JNIEnv *env, jclass clazz,
@@ -142,7 +344,7 @@ Java_com_blood_giflib_GifHandler_native_1updateFrame(JNIEnv *env, jclass clazz,
     // 锁住线程
     AndroidBitmap_lockPixels(env, bitmap, &pixels); // 像素二维数组
     // 绘制
-    drawFrame(gifFileType, bitmapInfo, pixels);
+    int delay = drawFrame(gifFileType, bitmapInfo, pixels, false);
     // 释放
     AndroidBitmap_unlockPixels(env, bitmap);
 
@@ -153,5 +355,5 @@ Java_com_blood_giflib_GifHandler_native_1updateFrame(JNIEnv *env, jclass clazz,
         gifBean->current_frame = 0;
     }
 
-    return 100;
+    return delay;
 }

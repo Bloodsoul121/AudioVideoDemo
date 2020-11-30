@@ -12,10 +12,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import java.io.File;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.io.File;
 
 public class GifActivity extends AppCompatActivity {
 
@@ -89,7 +89,13 @@ public class GifActivity extends AppCompatActivity {
     }
 
     // 复制gif文件
-    public void copyGif(View view) {
+    public void copyGif89A(View view) {
+        mGifName = "demo.gif";
+        FileUtil.copyfile(this, mFilesDir, mGifName);
+    }
+
+    public void copyGif87A(View view) {
+        mGifName = "demo.gif";
         FileUtil.copyfile(this, mFilesDir, mGifName);
     }
 
