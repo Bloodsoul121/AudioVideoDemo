@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.blood.giflib.GifActivity;
+import com.blood.jni.JniActivity;
 import com.example.avd.audio_encode_decode.AudioEncodeDecodeActivity;
 import com.example.avd.audio_record.AudioRecordActivity;
 import com.example.avd.camera.CameraActivity;
@@ -87,5 +88,9 @@ public class MainActivity extends BaseActivity {
 
     public void clickBtn10(View view) {
         startActivity(new Intent(this, GifActivity.class));
+    }
+
+    public void clickBtn11(View view) {
+        startActivity(new Intent(this, JniActivity.class));
     }
 }
