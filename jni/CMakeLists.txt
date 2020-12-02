@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
 # 很奇怪，只有 STATUS 才能输出日志，在 build_output.txt 中查看日志
+# cmake版本问题，3.10.2就能全部输出
 message(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 message(STATUS "PROJECT_SOURCE_DIR = ${PROJECT_SOURCE_DIR}")
