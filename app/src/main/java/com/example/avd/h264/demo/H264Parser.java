@@ -113,7 +113,7 @@ public class H264Parser implements Runnable {
                 byteBuffer.clear();
 
                 // startIndex + 1，不然一直返回原地踏步
-                int nextFrameIndex = findByFrame(bytes, mStartFrameIndex + 1);
+                int nextFrameIndex = findByFrame(bytes, mStartFrameIndex);
                 if (nextFrameIndex == -1) {
                     Log.e(TAG, "findByFrame failed");
                     break;
@@ -157,7 +157,8 @@ public class H264Parser implements Runnable {
 
     private int findByFrame(byte[] bytes, int start) {
         int length = bytes.length;
-        for (int i = start; i < length; i++) {
+        // 要从start + 1开始，不然就原地踏步
+        for (int i = start + 1; i < length; i++) {
             if (bytes[i] == 0x00 && bytes[i + 1] == 0x00 && bytes[i + 2] == 0x00 && bytes[i + 3] == 0x01) {
                 return i;
             }
