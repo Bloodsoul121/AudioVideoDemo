@@ -1,4 +1,4 @@
-package com.example.avd.h264.demo;
+package com.example.avd.h264.decode;
 
 public class H264SpsParser {
 

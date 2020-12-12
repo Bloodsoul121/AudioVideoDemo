@@ -1,4 +1,4 @@
-package com.example.avd.h264.demo;
+package com.example.avd.h264.decode;
 
 import android.content.Context;
 import android.media.MediaCodec;
@@ -145,6 +145,8 @@ public class H264Parser implements Runnable {
                 byte[] remain = new byte[byteBuffer.remaining()];
                 byteBuffer.get(remain);
                 byteBuffer.clear();
+
+                // 释放，很重要！！！
                 mMediaCodec.releaseOutputBuffer(outputBufferIndex, true);
             }
 

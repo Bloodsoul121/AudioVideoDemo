@@ -73,6 +73,12 @@
 
         <Button
             style="@style/normal_button"
+            android:onClick="clickBtn12"
+            android:text="h264 录制屏幕"
+            tools:ignore="HardcodedText" />
+
+        <Button
+            style="@style/normal_button"
             android:onClick="clickBtn9"
             android:text="h264 播放片段"
             tools:ignore="HardcodedText" />

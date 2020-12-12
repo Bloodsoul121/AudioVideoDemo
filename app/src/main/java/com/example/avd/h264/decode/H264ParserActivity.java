@@ -1,4 +1,4 @@
-package com.example.avd.h264.demo;
+package com.example.avd.h264.decode;
 
 import android.graphics.SurfaceTexture;
 import android.os.Bundle;

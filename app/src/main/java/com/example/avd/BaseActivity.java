@@ -5,21 +5,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
-import androidx.appcompat.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
-import com.example.avd.util.FileUtil;
+import com.blankj.utilcode.util.UriUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 public abstract class BaseActivity extends AppCompatActivity {
 
-    private Handler mHandler = new Handler();
+    private static final String TAG = "BaseActivity";
+
+    private final Handler mHandler = new Handler();
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -56,9 +61,25 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
             Uri uri = data.getData();//得到uri，后面就是将uri转化成file的过程。 Intent { dat=content://com.android.providers.media.documents/document/image:25090 flg=0x1 }
-            String filePath = FileUtil.parseUri(this, uri);
+            Log.i(TAG, "onActivityResult: uri " + uri);
+//            String filePath = FileUtil.parseUri(this, uri);
+
+            // content://com.amaze.filemanager.FILE_PROVIDER/storage_root/H264/out2.h264
+            // 如果找不到路径，就复制到cache目录下
+            File file = UriUtils.uri2File(uri);
+            if (file == null) {
+                toast("未找到文件");
+                return;
+            }
+            String filePath = file.getAbsolutePath();
+            Log.i(TAG, "onActivityResult: filePath " + filePath);
+            if (TextUtils.isEmpty(filePath)) {
+                toast("无法解析文件路径");
+                return;
+            }
             onResultSystemSelectedFilePath(filePath);
         }
     }

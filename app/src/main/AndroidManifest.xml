@@ -14,8 +14,7 @@
 
     <dist:module dist:instant="true" />
 
-    <application
-        android:name=".MainApplication"
+    <application android:name=".MainApplication"
         android:allowBackup="true"
         android:icon="@drawable/share"
         android:label="@string/app_name"
@@ -23,14 +22,13 @@
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".h264.demo.H264ParserActivity"/>
+        <activity android:name=".h264.encode.H264EncodeActivity"></activity>
+        <activity android:name=".h264.decode.H264ParserActivity" />
         <activity android:name=".flow.AudioMvFlowActivity" />
         <activity android:name=".camera.reuse.CameraReuseActivity" />
-        <activity
-            android:name=".mv_encode_decode.encode.MvEncode264Activity"
+        <activity android:name=".mv_encode_decode.encode.MvEncode264Activity"
             android:hardwareAccelerated="true" />
-        <activity
-            android:name=".mv_encode_decode.decode.MvDecode264Activity"
+        <activity android:name=".mv_encode_decode.decode.MvDecode264Activity"
             android:hardwareAccelerated="true" />
         <activity android:name=".mv_encode_decode.MvEncodeDecodeActivity" />
         <activity android:name=".audio_encode_decode.AudioEncodeDecodeActivity" />
@@ -46,6 +44,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
     </application>
 
 </manifest>
