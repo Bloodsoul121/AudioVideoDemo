@@ -22,7 +22,7 @@
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".h264.encode.H264EncodeActivity"></activity>
+        <activity android:name=".h264.encode.H264EncodeActivity" />
         <activity android:name=".h264.decode.H264ParserActivity" />
         <activity android:name=".flow.AudioMvFlowActivity" />
         <activity android:name=".camera.reuse.CameraReuseActivity" />
