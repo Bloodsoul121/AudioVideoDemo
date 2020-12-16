@@ -8,48 +8,15 @@ public class H264SpsParser {
 
     private static int nStartBit = 0;
 
-    private static int Ue(byte[] pBuff, int nLen) {
-        int nZeroNum = 0;
-        while (nStartBit < nLen * 8) {
-            if ((pBuff[nStartBit / 8] & (0x80 >> (nStartBit % 8))) != 0) {
-                break;
+    public static int[] getSizeFromSps(byte[] data) {
+        for (int i = 0; i < data.length - 4; i++) {
+            if (data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 0 && data[i + 3] == 1 && data[i + 4] == 0x67) {
+                int[] size = new int[2];
+                h264_decode_seq_parameter_set(data, data.length, size);
+                return size;
             }
-            nZeroNum++;
-            nStartBit++;
         }
-        nStartBit++;
-
-        int dwRet = 0;
-        for (int i = 0; i < nZeroNum; i++) {
-            dwRet <<= 1;
-            if ((pBuff[nStartBit / 8] & (0x80 >> (nStartBit % 8))) != 0) {
-                dwRet += 1;
-            }
-            nStartBit++;
-        }
-        return (1 << nZeroNum) - 1 + dwRet;
-    }
-
-    private static int Se(byte[] pBuff, int nLen) {
-        int UeVal = Ue(pBuff, nLen);
-        double k = UeVal;
-        int nValue = (int) Math.ceil(k / 2);
-        if (UeVal % 2 == 0) {
-            nValue = -nValue;
-        }
-        return nValue;
-    }
-
-    private static int u(int BitCount, byte[] buf) {
-        int dwRet = 0;
-        for (int i = 0; i < BitCount; i++) {
-            dwRet <<= 1;
-            if ((buf[nStartBit / 8] & (0x80 >> (nStartBit % 8))) != 0) {
-                dwRet += 1;
-            }
-            nStartBit++;
-        }
-        return dwRet;
+        return null;
     }
 
     private static boolean h264_decode_seq_parameter_set(byte[] buf, int nLen, int[] size) {
@@ -68,8 +35,7 @@ public class H264SpsParser {
 
             int seq_parameter_set_id = Ue(buf, nLen);
 
-            if (profile_idc == 100 || profile_idc == 110 ||
-                    profile_idc == 122 || profile_idc == 144) {
+            if (profile_idc == 100 || profile_idc == 110 || profile_idc == 122 || profile_idc == 144) {
                 int chroma_format_idc = Ue(buf, nLen);
                 if (chroma_format_idc == 3) {
                     int residual_colour_transform_flag = u(1, buf);
@@ -114,15 +80,50 @@ public class H264SpsParser {
         return false;
     }
 
-    public static int[] getSizeFromSps(byte[] data) {
-        for (int i = 0; i < data.length - 4; i++) {
-            if (data[i] == 0 && data[i + 1] == 0 && data[i + 2] == 0 && data[i + 3] == 1 && data[i + 4] == 0x67) {
-                int[] size = new int[2];
-                h264_decode_seq_parameter_set(data, data.length, size);
-                return size;
+    // 直接取BitCount位，转十进制
+    private static int u(int BitCount, byte[] buf) {
+        int dwRet = 0;
+        for (int i = 0; i < BitCount; i++) {
+            dwRet <<= 1;
+            if ((buf[nStartBit / 8] & (0x80 >> (nStartBit % 8))) != 0) {
+                dwRet += 1;
             }
+            nStartBit++;
         }
-        return null;
+        return dwRet;
+    }
+
+    // 哥伦布编码
+    private static int Ue(byte[] pBuff, int nLen) {
+        int nZeroNum = 0;
+        while (nStartBit < nLen * 8) {
+            if ((pBuff[nStartBit / 8] & (0x80 >> (nStartBit % 8))) != 0) {
+                break;
+            }
+            nZeroNum++;
+            nStartBit++;
+        }
+        nStartBit++;
+
+        int dwRet = 0;
+        for (int i = 0; i < nZeroNum; i++) {
+            dwRet <<= 1;
+            if ((pBuff[nStartBit / 8] & (0x80 >> (nStartBit % 8))) != 0) {
+                dwRet += 1;
+            }
+            nStartBit++;
+        }
+        return (1 << nZeroNum) - 1 + dwRet;
+    }
+
+    private static int Se(byte[] pBuff, int nLen) {
+        int UeVal = Ue(pBuff, nLen);
+        double k = UeVal;
+        int nValue = (int) Math.ceil(k / 2);
+        if (UeVal % 2 == 0) {
+            nValue = -nValue;
+        }
+        return nValue;
     }
 
 }
