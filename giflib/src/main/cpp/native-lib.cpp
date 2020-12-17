@@ -319,9 +319,9 @@ int drawFrame(GifFileType* gif,AndroidBitmapInfo  info,   void* pixels,  bool fo
     }
     GraphicsControlBlock gcb;//获取控制信息
     DGifSavedExtensionToGCB(gif,gifBean->current_frame,&gcb);
-    int delay=gcb.DelayTime * 10;
+    int delay=gcb.DelayTime * 10; // gcb.DelayTime 单位10ms，转为ms，就要 *10
     LOGE("delay %d",delay);
-    return delay;
+    return delay; // ms
 }
 
 extern "C"
