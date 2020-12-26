@@ -4,9 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".mv_flow.AudioMvFlowActivity">
+    tools:context=".mv_flow.MvFlowActivity">
 
-    <com.example.avd.mv_flow.AudioMvFlowCameraView
+    <com.example.avd.mv_flow.MvFlowCameraView
         android:id="@+id/camera_preview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

@@ -24,7 +24,7 @@
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity android:name=".h264.encode.H264EncodeActivity" />
         <activity android:name=".h264.decode.H264ParserActivity" />
-        <activity android:name=".mv_flow.AudioMvFlowActivity" />
+        <activity android:name=".mv_flow.MvFlowActivity" />
         <activity android:name=".camera.reuse.CameraReuseActivity" />
         <activity android:name=".mv_encode_decode.encode.MvEncode264Activity"
             android:hardwareAccelerated="true" />

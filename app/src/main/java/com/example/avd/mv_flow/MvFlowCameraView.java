@@ -62,7 +62,7 @@ import java.util.concurrent.TimeUnit;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 
-public class AudioMvFlowCameraView extends TextureView {
+public class MvFlowCameraView extends TextureView {
 
     private static final String TAG = "CameraPreview";
     private static final String FRAGMENT_DIALOG = "dialog";
@@ -438,15 +438,15 @@ public class AudioMvFlowCameraView extends TextureView {
 
     };
 
-    public AudioMvFlowCameraView(Context context) {
+    public MvFlowCameraView(Context context) {
         this(context, null);
     }
 
-    public AudioMvFlowCameraView(Context context, AttributeSet attrs) {
+    public MvFlowCameraView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public AudioMvFlowCameraView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public MvFlowCameraView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context);
     }

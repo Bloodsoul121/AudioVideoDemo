@@ -32,12 +32,12 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.functions.Consumer;
 
-public class AudioMvFlowActivity extends BaseActivity {
+public class MvFlowActivity extends BaseActivity {
 
-    private static final String TAG = AudioMvFlowActivity.class.getSimpleName();
+    private static final String TAG = MvFlowActivity.class.getSimpleName();
 
     @BindView(R.id.camera_preview)
-    AudioMvFlowCameraView mCameraPreview;
+    MvFlowCameraView mCameraPreview;
     @BindView(R.id.record_red_icon)
     ImageView mRecordRedIcon;
     @BindView(R.id.start_record)
@@ -82,11 +82,11 @@ public class AudioMvFlowActivity extends BaseActivity {
             @Override
             public void accept(Boolean aBoolean) {
                 if (aBoolean) {
-                    Toast.makeText(AudioMvFlowActivity.this, "accept", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MvFlowActivity.this, "accept", Toast.LENGTH_SHORT).show();
                     initRecord();
                     initBaseDir();
                 } else {
-                    Toast.makeText(AudioMvFlowActivity.this, "deny", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MvFlowActivity.this, "deny", Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }
