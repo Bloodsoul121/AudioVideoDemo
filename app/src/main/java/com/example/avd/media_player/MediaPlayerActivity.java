@@ -1,14 +1,15 @@
-package com.example.avd.mp;
+package com.example.avd.media_player;
 
 import android.content.Intent;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 
 import com.example.avd.R;
-import com.example.avd.mp.android.AndroidMPActivity;
+import com.example.avd.media_player.android.AndroidMPActivity;
 
-public class MPActivity extends AppCompatActivity {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MediaPlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

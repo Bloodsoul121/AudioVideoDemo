@@ -1,4 +1,4 @@
-package com.example.avd.mv_encode_decode.encode;
+package com.example.avd.util;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -8,7 +8,7 @@ import java.io.IOException;
  * 第一个会出现镜像效果
  * 第三个可用 {@link #rotateYUV420SP3(byte[], int, int)}
  */
-public class RotateYuvUtil {
+public class YUVRotateUtil {
 
     /**
      * 将视频流先旋转90度，否则录制的视频是横向的

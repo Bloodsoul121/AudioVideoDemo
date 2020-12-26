@@ -24,7 +24,7 @@
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity android:name=".h264.encode.H264EncodeActivity" />
         <activity android:name=".h264.decode.H264ParserActivity" />
-        <activity android:name=".flow.AudioMvFlowActivity" />
+        <activity android:name=".mv_flow.AudioMvFlowActivity" />
         <activity android:name=".camera.reuse.CameraReuseActivity" />
         <activity android:name=".mv_encode_decode.encode.MvEncode264Activity"
             android:hardwareAccelerated="true" />
@@ -35,8 +35,8 @@
         <activity android:name=".mv_split_compose.MvSplitComposeActivity" />
         <activity android:name=".camera.CameraActivity" />
         <activity android:name=".audio_record.AudioRecordActivity" />
-        <activity android:name=".mp.MPActivity" />
-        <activity android:name=".mp.android.AndroidMPActivity" />
+        <activity android:name=".media_player.MediaPlayerActivity" />
+        <activity android:name=".media_player.android.AndroidMPActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

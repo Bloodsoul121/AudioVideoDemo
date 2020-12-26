@@ -1,4 +1,4 @@
-package com.example.avd.mp.android;
+package com.example.avd.media_player.android;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

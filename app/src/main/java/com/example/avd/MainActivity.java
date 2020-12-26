@@ -12,10 +12,10 @@ import com.example.avd.audio_encode_decode.AudioEncodeDecodeActivity;
 import com.example.avd.audio_record.AudioRecordActivity;
 import com.example.avd.camera.CameraActivity;
 import com.example.avd.camera.reuse.CameraReuseActivity;
-import com.example.avd.flow.AudioMvFlowActivity;
+import com.example.avd.mv_flow.AudioMvFlowActivity;
 import com.example.avd.h264.decode.H264ParserActivity;
 import com.example.avd.h264.encode.H264EncodeActivity;
-import com.example.avd.mp.MPActivity;
+import com.example.avd.media_player.MediaPlayerActivity;
 import com.example.avd.mv_encode_decode.MvEncodeDecodeActivity;
 import com.example.avd.mv_split_compose.MvSplitComposeActivity;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -60,7 +60,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void clickBtn3(View view) {
-        startActivity(new Intent(this, MPActivity.class));
+        startActivity(new Intent(this, MediaPlayerActivity.class));
     }
 
     public void clickBtn4(View view) {

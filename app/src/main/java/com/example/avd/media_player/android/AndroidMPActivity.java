@@ -1,4 +1,4 @@
-package com.example.avd.mp.android;
+package com.example.avd.media_player.android;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -9,7 +9,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.example.avd.R;
-import com.example.avd.mp.manager.MPManager;
+import com.example.avd.media_player.manager.MPManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

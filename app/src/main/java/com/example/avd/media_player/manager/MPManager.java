@@ -1,4 +1,4 @@
-package com.example.avd.mp.manager;
+package com.example.avd.media_player.manager;
 
 import android.annotation.SuppressLint;
 import android.content.res.AssetFileDescriptor;
@@ -7,7 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 
 import com.example.avd.MainApplication;
-import com.example.avd.mp.android.Music;
+import com.example.avd.media_player.android.Music;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.example.avd.mp.android;
+package com.example.avd.media_player.android;
 
 public class Music {
     public int id;

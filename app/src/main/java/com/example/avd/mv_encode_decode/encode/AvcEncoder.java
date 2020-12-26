@@ -11,6 +11,7 @@ import android.view.Surface;
 
 import com.example.avd.ActivityLifeManager;
 import com.example.avd.util.BitmapUtil;
+import com.example.avd.util.YUVRotateUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -144,7 +145,7 @@ public class AvcEncoder {
                                 mCallback.onCaptureBitmap(BitmapUtil.getBitmapImageFromYUV(input, mWidth, mHeight));
                             }
                             // 尝试旋转90度
-                            input = RotateYuvUtil.rotateYUV420SP3(input, mWidth, mHeight);
+                            input = YUVRotateUtil.rotateYUV420SP3(input, mWidth, mHeight);
                             if (mCallback != null) {
                                 mCallback.onCaptureRotateBitmap(BitmapUtil.getBitmapImageFromYUV(input, mHeight, mWidth));
                             }
