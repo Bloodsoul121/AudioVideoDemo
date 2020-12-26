@@ -1,24 +1,16 @@
 package com.example.avd.h264.decode;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
 import android.widget.Toast;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -156,27 +148,28 @@ public class H264Parser implements Runnable {
                 byteBuffer.get(outData);
                 byteBuffer.clear();
 
-                // 将一帧图片保存到本地
-                YuvImage yuvImage = new YuvImage(outData, ImageFormat.NV21, 368, 384, null);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                yuvImage.compressToJpeg(new Rect(0, 0, 368, 384), 100, baos);
-                byte[] jdata = baos.toByteArray();//rgb
-                Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
-                if (bmp != null) {
-                    // 每隔5帧，随便定义
-                    if (intervalCount > 5) {
-                        try {
-                            File myCaptureFile = new File(Environment.getExternalStorageDirectory(), "img.png");
-                            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(myCaptureFile));
-                            bmp.compress(Bitmap.CompressFormat.JPEG, 80, bos);
-                            bos.flush();
-                            bos.close();
-                        } catch ( Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    intervalCount++;
-                }
+                // 只能选择是渲染到屏幕，或者存储到本地图片，如果同时调用，mMediaCodec.stop()会报错！！！
+//                // 将一帧图片保存到本地
+//                YuvImage yuvImage = new YuvImage(outData, ImageFormat.NV21, 368, 384, null);
+//                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//                yuvImage.compressToJpeg(new Rect(0, 0, 368, 384), 100, baos);
+//                byte[] jdata = baos.toByteArray();//rgb
+//                Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
+//                if (bmp != null) {
+//                    // 每隔5帧，随便定义
+//                    if (intervalCount > 5) {
+//                        try {
+//                            File myCaptureFile = new File(Environment.getExternalStorageDirectory(), "img.png");
+//                            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(myCaptureFile));
+//                            bmp.compress(Bitmap.CompressFormat.JPEG, 80, bos);
+//                            bos.flush();
+//                            bos.close();
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    intervalCount++;
+//                }
 
                 // 释放，很重要！！！
                 mMediaCodec.releaseOutputBuffer(outputBufferIndex, true); // true 表示渲染到surface上
@@ -193,7 +186,7 @@ public class H264Parser implements Runnable {
         int length = bytes.length;
         // 要从start + 1开始，不然就原地踏步
         for (int i = start + 1; i < length; i++) {
-            if (bytes[i] == 0x00 && bytes[i + 1] == 0x00 && bytes[i + 2] == 0x00 && bytes[i + 3] == 0x01) {
+            if (bytes[i] == 0x00 && bytes[i + 1] == 0x00 && bytes[i + 2] == 0x00 && bytes[i + 3] == 0x01 || bytes[i] == 0x00 && bytes[i + 1] == 0x00 && bytes[i + 2] == 0x01) {
                 return i;
             }
         }
