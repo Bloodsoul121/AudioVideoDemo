@@ -5,7 +5,6 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
-import androidx.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
 
@@ -20,6 +19,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
+
+import androidx.annotation.RequiresApi;
 
 /**
  * 其他补充：

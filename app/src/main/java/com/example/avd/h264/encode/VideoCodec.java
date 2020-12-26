@@ -7,9 +7,13 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.projection.MediaProjection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
 
+import com.example.avd.util.FileUtil;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -52,11 +56,7 @@ class VideoCodec extends Thread {
             mMediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             // 提供一个surface，与MediaProjection进行连接，MediaProjection录制的每一帧数据就会填充到surface，然后传入dso芯片编码
             Surface surface = mMediaCodec.createInputSurface();
-            mVirtualDisplay = mMediaProjection.createVirtualDisplay(
-                    "screen-codec",
-                    540, 960, 1,
-                    DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,
-                    surface, null, null);
+            mVirtualDisplay = mMediaProjection.createVirtualDisplay("screen-codec", 540, 960, 1, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, surface, null, null);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -95,7 +95,10 @@ class VideoCodec extends Thread {
                 }
 
                 // 现在可以处理 outData ，输出的已经编码好的 h264 码流
-                writeOutDataFile(outData);
+                // byte文本，供分析测试
+                FileUtil.writeContent(outData, new File(Environment.getExternalStorageDirectory(), "codec.txt"));
+                // byte字节，可播放文件
+                FileUtil.writeBytes(outData, new File(Environment.getExternalStorageDirectory(), "codec.h264"));
 
                 // 释放 buffer
                 mMediaCodec.releaseOutputBuffer(index, false);
@@ -116,10 +119,6 @@ class VideoCodec extends Thread {
 
         mMediaProjection.stop();
         mMediaProjection = null;
-    }
-
-    private void writeOutDataFile(byte[] outData) {
-        Log.i(TAG, "writeOutDataFile: " + outData.length);
     }
 
 }
