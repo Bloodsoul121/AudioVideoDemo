@@ -12,6 +12,7 @@ import com.example.avd.audio_encode_decode.AudioEncodeDecodeActivity;
 import com.example.avd.audio_record.AudioRecordActivity;
 import com.example.avd.camera.CameraActivity;
 import com.example.avd.camera.reuse.CameraReuseActivity;
+import com.example.avd.camera1.Camera1Activity;
 import com.example.avd.h264.decode.H264ParserActivity;
 import com.example.avd.h264.encode.H264EncodeActivity;
 import com.example.avd.media_player.MediaPlayerActivity;
@@ -98,5 +99,9 @@ public class MainActivity extends BaseActivity {
 
     public void clickBtn13(View view) {
         startActivity(new Intent(this, ScreenActivity.class));
+    }
+
+    public void clickBtn14(View view) {
+        startActivity(new Intent(this, Camera1Activity.class));
     }
 }

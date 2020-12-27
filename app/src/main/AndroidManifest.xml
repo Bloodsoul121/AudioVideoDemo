@@ -22,7 +22,8 @@
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".screen.client.ClientScreenActivity"></activity>
+        <activity android:name=".camera1.Camera1Activity"></activity>
+        <activity android:name=".screen.client.ClientScreenActivity" />
         <activity android:name=".screen.server.ServerScreenActivity" />
         <activity android:name=".screen.ScreenActivity" />
         <activity android:name=".h264.encode.H264EncodeActivity" />

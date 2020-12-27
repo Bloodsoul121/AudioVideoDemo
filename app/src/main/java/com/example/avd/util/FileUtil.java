@@ -9,6 +9,7 @@ package com.example.avd.util;
  *  @描述：    TODO
  */
 
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -19,6 +20,10 @@ import java.io.IOException;
 public class FileUtil {
 
     private static final String TAG = "FileUtil";
+
+    public static File getParentDir() {
+        return Environment.getExternalStorageDirectory();
+    }
 
     public static void writeContent(byte[] array, File saveFile) {
         char[] HEX_CHAR_TABLE = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
