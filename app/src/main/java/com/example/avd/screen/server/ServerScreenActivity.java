@@ -33,7 +33,7 @@ public class ServerScreenActivity extends BaseActivity {
     }
 
     public void clickBtn1(View view) {
-        if (mIsStart) return;
+        if (mIsStart) { return; }
         mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         Intent intent = mMediaProjectionManager.createScreenCaptureIntent();
         startActivityForResult(intent, REQUEST_CODE_SCREEN);
@@ -44,11 +44,14 @@ public class ServerScreenActivity extends BaseActivity {
             toast("请先开启录屏");
             return;
         }
-        if (mSocketLive == null ) {
+        if (mSocketLive == null) {
             mSocketLive = new ServerSocketLive(SOCKET_SERVER_PORT);
         }
         if (mSocketLive.isOpen()) {
             toast("已开启 push");
+            return;
+        }
+        if (mMediaProjection == null) {
             return;
         }
         mSocketLive.start(mMediaProjection);

@@ -107,6 +107,12 @@
             android:text="camera 1 生成图片"
             tools:ignore="HardcodedText" />
 
+        <Button
+            style="@style/normal_button"
+            android:onClick="clickBtn15"
+            android:text="视频聊天"
+            tools:ignore="HardcodedText" />
+
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>
