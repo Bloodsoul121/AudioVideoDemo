@@ -38,4 +38,5 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation project(path: ':giflib')
     implementation 'com.blankj:utilcodex:1.30.5'
+    implementation "org.java-websocket:Java-WebSocket:1.5.1"
 }

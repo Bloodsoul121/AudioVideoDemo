@@ -12,12 +12,13 @@ import com.example.avd.audio_encode_decode.AudioEncodeDecodeActivity;
 import com.example.avd.audio_record.AudioRecordActivity;
 import com.example.avd.camera.CameraActivity;
 import com.example.avd.camera.reuse.CameraReuseActivity;
-import com.example.avd.mv_flow.MvFlowActivity;
 import com.example.avd.h264.decode.H264ParserActivity;
 import com.example.avd.h264.encode.H264EncodeActivity;
 import com.example.avd.media_player.MediaPlayerActivity;
 import com.example.avd.mv_encode_decode.MvEncodeDecodeActivity;
+import com.example.avd.mv_flow.MvFlowActivity;
 import com.example.avd.mv_split_compose.MvSplitComposeActivity;
+import com.example.avd.screen.ScreenActivity;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import io.reactivex.functions.Consumer;
@@ -34,11 +35,7 @@ public class MainActivity extends BaseActivity {
     @SuppressLint("CheckResult")
     public void requestPermissions() {
         RxPermissions rxPermissions = new RxPermissions(this);
-        rxPermissions.request(
-                Manifest.permission.CAMERA,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-        ).subscribe(new Consumer<Boolean>() {
+        rxPermissions.request(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE).subscribe(new Consumer<Boolean>() {
             @Override
             public void accept(Boolean aBoolean) {
                 if (aBoolean) {
@@ -84,7 +81,7 @@ public class MainActivity extends BaseActivity {
     }
 
     public void clickBtn9(View view) {
-        startActivity(new Intent(this, H264ParserActivity.class));
+        startActivity(new Intent(this, JniActivity.class));
     }
 
     public void clickBtn10(View view) {
@@ -92,10 +89,14 @@ public class MainActivity extends BaseActivity {
     }
 
     public void clickBtn11(View view) {
-        startActivity(new Intent(this, JniActivity.class));
+        startActivity(new Intent(this, H264ParserActivity.class));
     }
 
     public void clickBtn12(View view) {
         startActivity(new Intent(this, H264EncodeActivity.class));
+    }
+
+    public void clickBtn13(View view) {
+        startActivity(new Intent(this, ScreenActivity.class));
     }
 }

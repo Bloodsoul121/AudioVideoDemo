@@ -22,6 +22,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CODE_SYSTEM_PATH = 0xffff;
+
     private static final String TAG = "BaseActivity";
 
     private final Handler mHandler = new Handler();
@@ -52,35 +54,37 @@ public abstract class BaseActivity extends AppCompatActivity {
         //intent.setType(“audio/*”); //选择音频
         //intent.setType(“video/*”); //选择视频 （mp4 3gp 是android支持的视频格式）
         //intent.setType(“video/*;image/*”);//同时选择视频和图片
-//        intent.setType("video/*;audio/*");
+        //        intent.setType("video/*;audio/*");
         intent.setType("*/*");//无类型限制
         intent.addCategory(Intent.CATEGORY_DEFAULT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        startActivityForResult(intent, 1);
+        startActivityForResult(intent, REQUEST_CODE_SYSTEM_PATH);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {//是否选择，没选择就不会继续
-            Uri uri = data.getData();//得到uri，后面就是将uri转化成file的过程。 Intent { dat=content://com.android.providers.media.documents/document/image:25090 flg=0x1 }
-            Log.i(TAG, "onActivityResult: uri " + uri);
-//            String filePath = FileUtil.parseUri(this, uri);
+            if (requestCode == REQUEST_CODE_SYSTEM_PATH) {
+                Uri uri = data.getData();//得到uri，后面就是将uri转化成file的过程。 Intent { dat=content://com.android.providers.media.documents/document/image:25090 flg=0x1 }
+                Log.i(TAG, "onActivityResult: uri " + uri);
+                //            String filePath = FileUtil.parseUri(this, uri);
 
-            // content://com.amaze.filemanager.FILE_PROVIDER/storage_root/H264/out2.h264
-            // 如果找不到路径，就复制到cache目录下
-            File file = UriUtils.uri2File(uri);
-            if (file == null) {
-                toast("未找到文件");
-                return;
+                // content://com.amaze.filemanager.FILE_PROVIDER/storage_root/H264/out2.h264
+                // 如果找不到路径，就复制到cache目录下
+                File file = UriUtils.uri2File(uri);
+                if (file == null) {
+                    toast("未找到文件");
+                    return;
+                }
+                String filePath = file.getAbsolutePath();
+                Log.i(TAG, "onActivityResult: filePath " + filePath);
+                if (TextUtils.isEmpty(filePath)) {
+                    toast("无法解析文件路径");
+                    return;
+                }
+                onResultSystemSelectedFilePath(filePath);
             }
-            String filePath = file.getAbsolutePath();
-            Log.i(TAG, "onActivityResult: filePath " + filePath);
-            if (TextUtils.isEmpty(filePath)) {
-                toast("无法解析文件路径");
-                return;
-            }
-            onResultSystemSelectedFilePath(filePath);
         }
     }
 

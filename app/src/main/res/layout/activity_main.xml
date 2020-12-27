@@ -73,14 +73,8 @@
 
         <Button
             style="@style/normal_button"
-            android:onClick="clickBtn12"
-            android:text="h264 录制屏幕"
-            tools:ignore="HardcodedText" />
-
-        <Button
-            style="@style/normal_button"
             android:onClick="clickBtn9"
-            android:text="h264 播放片段"
+            android:text="native 调用 java 代码"
             tools:ignore="HardcodedText" />
 
         <Button
@@ -92,7 +86,19 @@
         <Button
             style="@style/normal_button"
             android:onClick="clickBtn11"
-            android:text="native 调用 java 代码"
+            android:text="h264 播放片段"
+            tools:ignore="HardcodedText" />
+
+        <Button
+            style="@style/normal_button"
+            android:onClick="clickBtn12"
+            android:text="h264 录制屏幕"
+            tools:ignore="HardcodedText" />
+
+        <Button
+            style="@style/normal_button"
+            android:onClick="clickBtn13"
+            android:text="投屏"
             tools:ignore="HardcodedText" />
 
     </LinearLayout>
