@@ -88,6 +88,8 @@ public class EncodePushLiveH265 {
     }
 
     private long computePresentationTime(long frameIndex) {
+        // 根据帧率计算出每一帧的大概时间点，即 1s -> 1000_000 / 15 是每一帧的时间间隔
+        // 但是，第一帧不是从0开始的，因为dsp需要初始化时间，所以需要加上一个起始时间，随便多少，否则第一帧就直接跳过了
         return 132 + frameIndex * 1000000 / 15;
     }
 
