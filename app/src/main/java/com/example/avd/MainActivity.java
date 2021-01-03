@@ -8,6 +8,7 @@ import android.view.View;
 
 import com.blood.giflib.GifActivity;
 import com.blood.jni.JniActivity;
+import com.example.avd.aac.AACActivity;
 import com.example.avd.audio_encode_decode.AudioEncodeDecodeActivity;
 import com.example.avd.audio_record.AudioRecordActivity;
 import com.example.avd.camera.CameraActivity;
@@ -108,5 +109,9 @@ public class MainActivity extends BaseActivity {
 
     public void clickBtn15(View view) {
         startActivity(new Intent(this, LiveChatActivity.class));
+    }
+
+    public void clickBtn16(View view) {
+        startActivity(new Intent(this, AACActivity.class));
     }
 }

@@ -9,13 +9,16 @@ package com.example.avd.util;
  *  @描述：    TODO
  */
 
+import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class FileUtil {
 
@@ -70,6 +73,58 @@ public class FileUtil {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    public static void copyAssetsFile(Context context, String assetsFileName, File dir, String fileName) {
+        FileOutputStream fos = null;
+        InputStream is = null;
+        try {
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            File copyFile = new File(dir, fileName);
+
+            if (copyFile.exists()) {
+                copyFile.delete();
+            }
+            try {
+                copyFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            fos = new FileOutputStream(copyFile);
+            is = context.getAssets().open(assetsFileName);
+
+            byte[] bytes = new byte[1024];
+            int len;
+
+            while ((len = is.read(bytes)) != -1) {
+                fos.write(bytes, 0, len);
+                fos.flush();
+            }
+
+            Toast.makeText(context, "拷贝成功", Toast.LENGTH_SHORT).show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

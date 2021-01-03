@@ -113,6 +113,12 @@
             android:text="视频聊天"
             tools:ignore="HardcodedText" />
 
+        <Button
+            style="@style/normal_button"
+            android:onClick="clickBtn16"
+            android:text="音频剪辑"
+            tools:ignore="HardcodedText" />
+
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

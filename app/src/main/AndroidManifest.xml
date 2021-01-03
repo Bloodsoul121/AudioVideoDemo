@@ -22,7 +22,8 @@
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".livechat.client.ClientLiveChatActivity"></activity>
+        <activity android:name=".aac.AACActivity"></activity>
+        <activity android:name=".livechat.client.ClientLiveChatActivity" />
         <activity android:name=".livechat.server.ServerLiveChatActivity" />
         <activity android:name=".livechat.LiveChatActivity" />
         <activity android:name=".camera1.Camera1Activity" />
