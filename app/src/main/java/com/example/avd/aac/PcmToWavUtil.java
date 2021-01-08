@@ -7,11 +7,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-/**
- * Created by huangwei on 2018/2/9.
- */
-
 public class PcmToWavUtil {
+
     private int mBufferSize;  //缓存的音频大小
     private int mSampleRate = 8000;// 8000|16000
     private int mChannelConfig = AudioFormat.CHANNEL_IN_STEREO;   //立体声
@@ -23,9 +20,9 @@ public class PcmToWavUtil {
     }
 
     /**
-     * @param sampleRate sample rate、采样率
-     * @param channelConfig    channel、声道
-     * @param encoding   Audio data format、音频格式
+     * @param sampleRate    sample rate、采样率
+     * @param channelConfig channel、声道
+     * @param encoding      Audio data format、音频格式
      */
     public PcmToWavUtil(int sampleRate, int channelConfig, int channelCount, int encoding) {
         this.mSampleRate = sampleRate;
@@ -63,7 +60,7 @@ public class PcmToWavUtil {
             }
             in.close();
             out.close();
-        }  catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
