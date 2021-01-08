@@ -13,4 +13,16 @@
         android:onClick="clickBtn1"
         android:text="剪辑音频" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="clickBtn2"
+        android:text="剪辑视频音频" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="clickBtn3"
+        android:text="混合音频" />
+
 </LinearLayout>
