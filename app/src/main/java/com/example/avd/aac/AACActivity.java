@@ -82,4 +82,12 @@ public class AACActivity extends AppCompatActivity {
         }).start();
     }
 
+    public void clickBtn5(View view) {
+        new Thread(() -> {
+            String videoInput1 = new File(mDirFile, "video_copy.mp4").getAbsolutePath();
+            String videoInput2 = new File(mDirFile, "video_copy.mp4").getAbsolutePath();
+            String outputMp4 = new File(mDirFile, "append_video.mp4").getAbsolutePath();
+            VideoProcess.appendVideo(videoInput1, videoInput2, outputMp4);
+        }).start();
+    }
 }
