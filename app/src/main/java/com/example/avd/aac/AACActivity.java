@@ -5,12 +5,12 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.example.avd.R;
 import com.example.avd.util.FileUtil;
 
 import java.io.File;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class AACActivity extends AppCompatActivity {
 
@@ -65,18 +65,21 @@ public class AACActivity extends AppCompatActivity {
             String videoInputTemp = new File(mDirFile, "video_temp_pcm.pcm").getAbsolutePath();
             String audioInputTemp = new File(mDirFile, "audio_temp_pcm.pcm").getAbsolutePath();
             String mixTemp = new File(mDirFile, "mix_temp_pcm.pcm").getAbsolutePath();
-            MusicProcess.mixAudioTrack(
-                    videoInput,
-                    audioInput,
-                    output,
-                    videoInputTemp,
-                    audioInputTemp,
-                    mixTemp,
-                    25_000_000,
-                    35_000_000,
-                    100,
-                    100
-            );
+            MusicProcess.mixAudioTrack(videoInput, audioInput, output, videoInputTemp, audioInputTemp, mixTemp, 25_000_000, 35_000_000, 100, 100);
         }).start();
     }
+
+    public void clickBtn4(View view) {
+        new Thread(() -> {
+            String videoInput = new File(mDirFile, "video_copy.mp4").getAbsolutePath();
+            String audioInput = new File(mDirFile, "music_copy.mp3").getAbsolutePath();
+            String outputMp3 = new File(mDirFile, "mix.mp3").getAbsolutePath();
+            String outputMp4 = new File(mDirFile, "mix.mp4").getAbsolutePath();
+            String videoInputTemp = new File(mDirFile, "video_temp_pcm.pcm").getAbsolutePath();
+            String audioInputTemp = new File(mDirFile, "audio_temp_pcm.pcm").getAbsolutePath();
+            String mixTemp = new File(mDirFile, "mix_temp_pcm.pcm").getAbsolutePath();
+            MusicProcess.mixVideoAndAudioToMp4(videoInput, audioInput, outputMp3, outputMp4, videoInputTemp, audioInputTemp, mixTemp, 30_000_000, 45_000_000, 100, 100);
+        }).start();
+    }
+
 }

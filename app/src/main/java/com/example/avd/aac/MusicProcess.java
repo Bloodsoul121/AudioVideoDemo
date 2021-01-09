@@ -2,8 +2,10 @@ package com.example.avd.aac;
 
 import android.media.AudioFormat;
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.os.Environment;
 import android.util.Log;
 
@@ -20,15 +22,199 @@ public class MusicProcess {
 
     private static final String TAG = "MusicProcess";
 
+    // 视频 + BGM ，封装新的视频mp4
+    public static void mixVideoAndAudioToMp4(String videoInput, // 视频音频
+                                             String audioInput, // bgm音频
+                                             String outputMp3, // 输出音频
+                                             String outputMp4, // 输出音频
+                                             String videoInputTemp, // 视频音频，pcm临时文件
+                                             String audioInputTemp, // bgm音频，pcm临时文件
+                                             String mixTemp, // 混合音频，pcm临时文件
+                                             int startTimeUs, int endTimeUs, // 时间段
+                                             int videoVolume, // 视频声音大小
+                                             int aacVolume // 音频声音大小
+    ) {
+        try {
+
+            // 解码 pcm
+            decodeAacToPcm(videoInput, videoInputTemp, startTimeUs, endTimeUs);
+            decodeAacToPcm(audioInput, audioInputTemp, startTimeUs, endTimeUs);
+
+            // 混音 pcm
+            mixPcm(videoInputTemp, audioInputTemp, mixTemp, videoVolume, aacVolume);
+
+            // pcm 合成 wav
+            new PcmToWavUtil(44100, AudioFormat.CHANNEL_IN_STEREO, 2, AudioFormat.ENCODING_PCM_16BIT).pcmToWav(mixTemp, outputMp3);
+
+            mixVideoAndAudioToMp4(videoInput, outputMp3, outputMp4, startTimeUs, endTimeUs);
+
+            Log.i(TAG, "mixVideoAndAudioToMp4: 转换完毕");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 抽离视频，与单独音频混合，封装新的视频mp4
+    private static void mixVideoAndAudioToMp4(String mp4Input, // 视频文件（包含视频和音频）
+                                              String wavInput, // 单独音频，wav文件
+                                              String output, // 输出视频，mp4
+                                              int startTimeUs, int endTimeUs // 时间段
+    ) {
+        try {
+            // 封装容器
+            MediaMuxer mediaMuxer = new MediaMuxer(output, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
+            // 抽离视频
+            MediaExtractor mp4Extractor = new MediaExtractor();
+            mp4Extractor.setDataSource(mp4Input);
+            // 视频轨道索引
+            int videoTrackIndex = selectTrack(mp4Extractor, false);
+            // 音频轨道索引
+            int audioTrackIndex = selectTrack(mp4Extractor, true);
+
+            // 往容器添加轨道信息
+            MediaFormat videoTrackFormat = mp4Extractor.getTrackFormat(videoTrackIndex);
+            // 空轨道，没有数据的
+            mediaMuxer.addTrack(videoTrackFormat);
+
+            MediaFormat audioTrackFormat = mp4Extractor.getTrackFormat(audioTrackIndex);
+            // 配置信息，后面添加新的音频时需要用到
+            int audioBitRate = audioTrackFormat.getInteger(MediaFormat.KEY_BIT_RATE);
+            // 后面需要添加aac音频
+            audioTrackFormat.setString(MediaFormat.KEY_MIME, MediaFormat.MIMETYPE_AUDIO_AAC);
+            int muxerAudioIndex = mediaMuxer.addTrack(audioTrackFormat);
+
+            // 配置完成，开始运行工作
+            mediaMuxer.start();
+
+            // 正片开始啦！！！
+
+            // 将单独音频数据添加到轨道中
+            MediaExtractor wavExtractor = new MediaExtractor();
+            wavExtractor.setDataSource(wavInput);
+            int wavTrackIndex = selectTrack(wavExtractor, true);
+            wavExtractor.selectTrack(wavTrackIndex);
+
+            MediaFormat wavMediaFormat = wavExtractor.getTrackFormat(wavTrackIndex);
+
+            int maxBufferSize;
+            if (wavMediaFormat.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
+                maxBufferSize = wavMediaFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE);
+            } else {
+                maxBufferSize = 100_000;
+            }
+
+            MediaCodec mediaCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
+            // 参数对应-> mime type、采样率、声道数
+            MediaFormat mediaFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, 44100, 2);
+            // 比特率
+            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, audioBitRate);
+            // 音质等级
+            mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+            // 解码  那段
+            mediaFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxBufferSize);
+            mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+            mediaCodec.start();
+
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(maxBufferSize);
+            MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+            boolean encodeDone = false;
+            while (!encodeDone) {
+                int inputBufferIndex = mediaCodec.dequeueInputBuffer(10_000);
+                if (inputBufferIndex > -1) {
+                    long sampleTime = wavExtractor.getSampleTime();
+                    if (sampleTime < 0) {
+                        // pts小于0  来到了文件末尾 通知编码器  不用编码了
+                        mediaCodec.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                    } else {
+                        int flags = wavExtractor.getSampleFlags();
+                        int size = wavExtractor.readSampleData(byteBuffer, 0);
+                        ByteBuffer inputBuffer = mediaCodec.getInputBuffer(inputBufferIndex);
+                        inputBuffer.clear();
+                        inputBuffer.put(byteBuffer);
+                        inputBuffer.position(0);
+                        mediaCodec.queueInputBuffer(inputBufferIndex, 0, size, sampleTime, flags);
+
+                        // 下一帧
+                        wavExtractor.advance();
+                    }
+                }
+
+                int outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 10_000);
+                while (outputBufferIndex > -1) {
+                    if (bufferInfo.flags == MediaCodec.BUFFER_FLAG_END_OF_STREAM) {
+                        encodeDone = true;
+                        break;
+                    }
+
+                    ByteBuffer outputBuffer = mediaCodec.getOutputBuffer(outputBufferIndex);
+                    mediaMuxer.writeSampleData(muxerAudioIndex, outputBuffer, bufferInfo);
+                    mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
+
+                    // 循环
+                    outputBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 10_000);
+                }
+            }
+
+            // 音频端就结束了
+
+            if (audioTrackIndex > -1) {
+                mp4Extractor.unselectTrack(audioTrackIndex);
+            }
+
+            // 操作视频
+
+            mp4Extractor.selectTrack(videoTrackIndex);
+
+            mp4Extractor.seekTo(startTimeUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
+            maxBufferSize = videoTrackFormat.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE);
+            byteBuffer = ByteBuffer.allocateDirect(maxBufferSize);
+            //封装容器添加视频轨道信息
+            while (true) {
+                long sampleTimeUs = mp4Extractor.getSampleTime();
+                if (sampleTimeUs == -1) {
+                    break;
+                }
+                if (sampleTimeUs < startTimeUs) {
+                    mp4Extractor.advance();
+                    continue;
+                }
+                if (sampleTimeUs > endTimeUs) {
+                    break;
+                }
+                // pts  0
+                bufferInfo.presentationTimeUs = sampleTimeUs - startTimeUs + 600;
+                bufferInfo.flags = mp4Extractor.getSampleFlags();
+                // 读取视频文件的数据  画面 数据   压缩1  未压缩2
+                bufferInfo.size = mp4Extractor.readSampleData(byteBuffer, 0);
+                if (bufferInfo.size < 0) {
+                    break;
+                }
+                // 视频轨道  画面写完了
+                mediaMuxer.writeSampleData(videoTrackIndex, byteBuffer, bufferInfo);
+                mp4Extractor.advance();
+            }
+
+            wavExtractor.release();
+            mp4Extractor.release();
+            mediaCodec.stop();
+            mediaCodec.release();
+            mediaMuxer.release();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 混合多个音频
     public static void mixAudioTrack(String videoInput, // 视频音频
                                      String audioInput, // bgm音频
                                      String output, // 输出音频
                                      String videoInputTemp, // 视频音频，pcm临时文件
                                      String audioInputTemp, // bgm音频，pcm临时文件
                                      String mixTemp, // 混合音频，pcm临时文件
-                                     int startTimeUs,
-                                     int endTimeUs,
-                                     int videoVolume, // 视频声音大小
+                                     int startTimeUs, int endTimeUs, int videoVolume, // 视频声音大小
                                      int aacVolume // 音频声音大小
     ) {
         try {
@@ -122,7 +308,7 @@ public class MusicProcess {
         return volume / 100f * 1;
     }
 
-    // 剪辑
+    // 剪辑音频
     public static void clip(String aacPath, String wavPath, String tempPcmPath, int startTime, int endTime) {
         try {
 

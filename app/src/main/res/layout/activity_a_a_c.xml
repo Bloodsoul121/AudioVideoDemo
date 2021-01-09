@@ -25,4 +25,10 @@
         android:onClick="clickBtn3"
         android:text="混合音频" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="clickBtn4"
+        android:text="混合视频+背景音频" />
+
 </LinearLayout>
