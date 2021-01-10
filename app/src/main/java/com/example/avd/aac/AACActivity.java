@@ -35,6 +35,7 @@ public class AACActivity extends AppCompatActivity {
 
             FileUtil.copyAssetsFile(AACActivity.this, "input2.mp4", mDirFile, "video_copy.mp4");
             FileUtil.copyAssetsFile(AACActivity.this, "music2.mp3", mDirFile, "music_copy.mp3");
+            FileUtil.copyAssetsFile(AACActivity.this, "input5.mp4", mDirFile, "input5.mp4");
             Log.i(TAG, "copyAssetsFile over");
         }).start();
     }
@@ -84,7 +85,7 @@ public class AACActivity extends AppCompatActivity {
 
     public void clickBtn5(View view) {
         new Thread(() -> {
-            String videoInput1 = new File(mDirFile, "video_copy.mp4").getAbsolutePath();
+            String videoInput1 = new File(mDirFile, "input5.mp4").getAbsolutePath();
             String videoInput2 = new File(mDirFile, "video_copy.mp4").getAbsolutePath();
             String outputMp4 = new File(mDirFile, "append_video.mp4").getAbsolutePath();
             VideoProcess.appendVideo(videoInput1, videoInput2, outputMp4);

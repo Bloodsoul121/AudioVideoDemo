@@ -13,12 +13,8 @@ import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
-import android.os.Environment;
 import android.util.Log;
 
-import com.example.avd.util.FileUtil;
-
-import java.io.File;
 import java.nio.ByteBuffer;
 
 public class VideoProcess {
@@ -32,24 +28,26 @@ public class VideoProcess {
         try {
             MediaMuxer mediaMuxer = new MediaMuxer(outputMp4, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
 
-            int videoTrackIndex1 = -1;
-            int audioTrackIndex1 = -1;
-            int videoTrackIndex2 = -1;
-            int audioTrackIndex2 = -1;
-
             MediaExtractor mediaExtractor1 = new MediaExtractor();
             mediaExtractor1.setDataSource(videoInput1);
 
             MediaExtractor mediaExtractor2 = new MediaExtractor();
             mediaExtractor2.setDataSource(videoInput2);
 
-            videoTrackIndex1 = selectTrack(mediaExtractor1, false);
+            int videoTrackIndex1 = selectTrack(mediaExtractor1, false);
             MediaFormat videoTrackFormat1 = mediaExtractor1.getTrackFormat(videoTrackIndex1);
-            mediaMuxer.addTrack(videoTrackFormat1);
+            long videoDuration = videoTrackFormat1.getLong(MediaFormat.KEY_DURATION);
+            int videoTrackIndex = mediaMuxer.addTrack(videoTrackFormat1);
 
-            audioTrackIndex1 = selectTrack(mediaExtractor1, true);
+            int audioTrackIndex1 = selectTrack(mediaExtractor1, true);
             MediaFormat audioTrackFormat1 = mediaExtractor1.getTrackFormat(audioTrackIndex1);
-            mediaMuxer.addTrack(audioTrackFormat1);
+            long audioDuration = audioTrackFormat1.getLong(MediaFormat.KEY_DURATION);
+            int audioTrackIndex = mediaMuxer.addTrack(audioTrackFormat1);
+
+            long fileDuration1 = Math.max(videoDuration, audioDuration);
+
+            int videoTrackIndex2 = selectTrack(mediaExtractor2, false);
+            int audioTrackIndex2 = selectTrack(mediaExtractor2, true);
 
             mediaMuxer.start();
 
@@ -66,16 +64,15 @@ public class VideoProcess {
                 }
 
                 // 仅供测试
-                byte[] data = new byte[byteBuffer.remaining()];
-                byteBuffer.get(data);
-                FileUtil.writeContent(data, new File(Environment.getExternalStorageDirectory(), "aac_codec.txt"));
+                //                byte[] data = new byte[byteBuffer.remaining()];
+                //                byteBuffer.get(data);
+                //                FileUtil.writeContent(data, new File(Environment.getExternalStorageDirectory(), "aac_codec.txt"));
 
                 bufferInfo.offset = 0;
                 bufferInfo.presentationTimeUs = mediaExtractor1.getSampleTime();
                 bufferInfo.flags = mediaExtractor1.getSampleFlags();
                 bufferInfo.size = size;
-                mediaMuxer.writeSampleData(videoTrackIndex1, byteBuffer, bufferInfo);
-
+                mediaMuxer.writeSampleData(videoTrackIndex, byteBuffer, bufferInfo);
                 mediaExtractor1.advance();
             }
 
@@ -94,16 +91,55 @@ public class VideoProcess {
                 bufferInfo.presentationTimeUs = mediaExtractor1.getSampleTime();
                 bufferInfo.flags = mediaExtractor1.getSampleFlags();
                 bufferInfo.size = size;
-                mediaMuxer.writeSampleData(audioTrackIndex1, byteBuffer, bufferInfo);
+                mediaMuxer.writeSampleData(audioTrackIndex, byteBuffer, bufferInfo);
                 mediaExtractor1.advance();
             }
+
+            byteBuffer = ByteBuffer.allocateDirect(500 * 1024);
+            bufferInfo = new MediaCodec.BufferInfo();
+            bufferInfo.presentationTimeUs = 0;
+
+            mediaExtractor2.selectTrack(videoTrackIndex2);
+
+            // 视频2 - 视频通道
+            while (true) {
+                int size = mediaExtractor2.readSampleData(byteBuffer, 0);
+                if (size < 0) {
+                    break;
+                }
+                bufferInfo.offset = 0;
+                bufferInfo.presentationTimeUs = fileDuration1 + mediaExtractor2.getSampleTime();
+                bufferInfo.flags = mediaExtractor2.getSampleFlags();
+                bufferInfo.size = size;
+                mediaMuxer.writeSampleData(videoTrackIndex, byteBuffer, bufferInfo);
+                mediaExtractor2.advance();
+            }
+
+            bufferInfo.presentationTimeUs = 0;
+
+            mediaExtractor2.unselectTrack(videoTrackIndex2);
+            mediaExtractor2.selectTrack(audioTrackIndex2);
+
+            // 视频2 - 音频通道
+            while (true) {
+                int size = mediaExtractor2.readSampleData(byteBuffer, 0);
+                if (size < 0) {
+                    break;
+                }
+                bufferInfo.offset = 0;
+                bufferInfo.presentationTimeUs = fileDuration1 + mediaExtractor2.getSampleTime();
+                bufferInfo.flags = mediaExtractor2.getSampleFlags();
+                bufferInfo.size = size;
+                mediaMuxer.writeSampleData(audioTrackIndex, byteBuffer, bufferInfo);
+                mediaExtractor2.advance();
+            }
+
+            Log.i(TAG, "appendVideo: 转换完毕");
 
             mediaExtractor1.release();
             mediaExtractor2.release();
             mediaMuxer.stop();
             mediaMuxer.release();
-
-            Log.i(TAG, "appendVideo: 转换完毕");
 
         } catch (Exception e) {
             e.printStackTrace();
