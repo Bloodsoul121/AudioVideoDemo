@@ -14,6 +14,7 @@ import com.example.avd.audio_record.AudioRecordActivity;
 import com.example.avd.camera.CameraActivity;
 import com.example.avd.camera.reuse.CameraReuseActivity;
 import com.example.avd.camera1.Camera1Activity;
+import com.example.avd.camera2.Camera2Activity;
 import com.example.avd.h264.decode.H264ParserActivity;
 import com.example.avd.h264.encode.H264EncodeActivity;
 import com.example.avd.livechat.LiveChatActivity;
@@ -113,5 +114,9 @@ public class MainActivity extends BaseActivity {
 
     public void clickBtn16(View view) {
         startActivity(new Intent(this, AACActivity.class));
+    }
+
+    public void clickBtn17(View view) {
+        startActivity(new Intent(this, Camera2Activity.class));
     }
 }

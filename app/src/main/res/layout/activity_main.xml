@@ -119,6 +119,12 @@
             android:text="音频剪辑"
             tools:ignore="HardcodedText" />
 
+        <Button
+            style="@style/normal_button"
+            android:onClick="clickBtn17"
+            android:text="Camera2"
+            tools:ignore="HardcodedText" />
+
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

@@ -14,7 +14,8 @@
 
     <dist:module dist:instant="true" />
 
-    <application android:name=".MainApplication"
+    <application
+        android:name=".MainApplication"
         android:allowBackup="true"
         android:icon="@drawable/share"
         android:label="@string/app_name"
@@ -22,7 +23,8 @@
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".aac.AACActivity"></activity>
+        <activity android:name=".camera2.Camera2Activity" />
+        <activity android:name=".aac.AACActivity" />
         <activity android:name=".livechat.client.ClientLiveChatActivity" />
         <activity android:name=".livechat.server.ServerLiveChatActivity" />
         <activity android:name=".livechat.LiveChatActivity" />
@@ -34,9 +36,11 @@
         <activity android:name=".h264.decode.H264ParserActivity" />
         <activity android:name=".mv_flow.MvFlowActivity" />
         <activity android:name=".camera.reuse.CameraReuseActivity" />
-        <activity android:name=".mv_encode_decode.encode.MvEncode264Activity"
+        <activity
+            android:name=".mv_encode_decode.encode.MvEncode264Activity"
             android:hardwareAccelerated="true" />
-        <activity android:name=".mv_encode_decode.decode.MvDecode264Activity"
+        <activity
+            android:name=".mv_encode_decode.decode.MvDecode264Activity"
             android:hardwareAccelerated="true" />
         <activity android:name=".mv_encode_decode.MvEncodeDecodeActivity" />
         <activity android:name=".audio_encode_decode.AudioEncodeDecodeActivity" />
@@ -53,11 +57,13 @@
             </intent-filter>
         </activity>
 
-        <provider android:name="androidx.core.content.FileProvider"
+        <provider
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
     </application>
