@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.4.1)
 add_library(
         bilibili-lib
         SHARED
-        src/main/cpp/native-lib.cpp
+        src/main/cpp/bilibili-lib.cpp
 )
 
 find_library(
