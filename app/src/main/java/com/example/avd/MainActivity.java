@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import com.blood.bilibili.ScreenBilibiliActivity;
 import com.blood.giflib.GifActivity;
 import com.blood.jni.JniActivity;
 import com.example.avd.aac.AACActivity;
@@ -118,5 +119,9 @@ public class MainActivity extends BaseActivity {
 
     public void clickBtn17(View view) {
         startActivity(new Intent(this, Camera2Activity.class));
+    }
+
+    public void clickBtn18(View view) {
+        startActivity(new Intent(this, ScreenBilibiliActivity.class));
     }
 }
