@@ -16,9 +16,12 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.projection.MediaProjection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -82,6 +85,10 @@ public class VideoCodec implements Runnable {
                 ByteBuffer buffer = mMediaCodec.getOutputBuffer(index);
                 byte[] outData = new byte[bufferInfo.size];
                 buffer.get(outData);
+
+                // 测试
+                writeBytes(outData);
+
                 // 发包
                 RTMPPackage rtmpPackage = new RTMPPackage(outData, (bufferInfo.presentationTimeUs / 1000) - mStartTime);
                 rtmpPackage.setType(RTMPPackage.RTMP_PACKET_TYPE_VIDEO);
@@ -100,4 +107,25 @@ public class VideoCodec implements Runnable {
         mStartTime = 0;
         Log.i(TAG, "run: -----------> VideoCodec over");
     }
+
+    public void writeBytes(byte[] bytes) {
+        FileOutputStream writer = null;
+        try {
+            // 打开一个写文件器，构造函数中的第二个参数true表示以追加形式写文件
+            writer = new FileOutputStream(new File(Environment.getExternalStorageDirectory(), "/bilibili_codec.h264"), true);
+            writer.write(bytes);
+            writer.write('\n');
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (writer != null) {
+                    writer.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }
