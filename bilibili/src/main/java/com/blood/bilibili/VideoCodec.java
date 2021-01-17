@@ -84,6 +84,7 @@ public class VideoCodec implements Runnable {
                 buffer.get(outData);
                 // 发包
                 RTMPPackage rtmpPackage = new RTMPPackage(outData, (bufferInfo.presentationTimeUs / 1000) - mStartTime);
+                rtmpPackage.setType(RTMPPackage.RTMP_PACKET_TYPE_VIDEO);
                 mScreenLive.addPackage(rtmpPackage);
                 mMediaCodec.releaseOutputBuffer(index, false);
             }

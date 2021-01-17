@@ -26,6 +26,7 @@ public class ScreenLive extends Thread {
     private String mLiveUrl;
     private MediaProjection mMediaProjection;
     private VideoCodec mVideoCodec;
+    private AudioCodec mAudioCodec;
 
     private boolean mIsLiving;
     private final LinkedBlockingQueue<RTMPPackage> mQueue = new LinkedBlockingQueue<>();
@@ -34,12 +35,14 @@ public class ScreenLive extends Thread {
         mLiveUrl = liveUrl;
         mMediaProjection = mediaProjection;
         mVideoCodec = new VideoCodec(this);
+        mAudioCodec= new AudioCodec(this);
         start();
     }
 
     public void stopLive() {
         mIsLiving = false;
         mVideoCodec.stopLive();
+        mAudioCodec.stopLive();
         interrupt();
     }
 
@@ -59,6 +62,7 @@ public class ScreenLive extends Thread {
         mIsLiving = true;
 
         mVideoCodec.startLive(mMediaProjection);
+        mAudioCodec.startLive();
 
         while (mIsLiving) {
             RTMPPackage rtmpPackage = null;
@@ -70,7 +74,7 @@ public class ScreenLive extends Thread {
 
             if (rtmpPackage != null && rtmpPackage.getBuffer() != null && rtmpPackage.getBuffer().length != 0) {
                 Log.i(TAG, "run: ----------->推送 " + rtmpPackage.getBuffer().length);
-                sendData(rtmpPackage.getBuffer(), rtmpPackage.getBuffer().length, rtmpPackage.getTms());
+                sendData(rtmpPackage.getBuffer(), rtmpPackage.getBuffer().length, rtmpPackage.getTms(), rtmpPackage.getType());
             }
         }
         Log.i(TAG, "run: -----------> ScreenLive over");
@@ -78,6 +82,6 @@ public class ScreenLive extends Thread {
 
     private native boolean connect(String url);
 
-    private native boolean sendData(byte[] data, int len, long tms);
+    private native boolean sendData(byte[] data, int len, long tms, int type);
 
 }

@@ -25,6 +25,8 @@ LiveData *liveData = nullptr;
 
 int sendVideo(const int8_t *buf, int len, long tms);
 
+int sendAudio(const int8_t *buf, int len, long tms, int type);
+
 int sendPacket(RTMPPacket *packet);
 
 void prepareSpsPps(const int8_t *buf, int len, LiveData *data);
@@ -32,6 +34,8 @@ void prepareSpsPps(const int8_t *buf, int len, LiveData *data);
 RTMPPacket *createSpsPpsPackage(LiveData *data);
 
 RTMPPacket *createVideoPackage(const int8_t *buf, int len, long tms, LiveData *data);
+
+RTMPPacket *createAudioPacket(const int8_t *buf, int len, long tms, int type, LiveData *data);
 
 extern "C"
 JNIEXPORT jboolean JNICALL
@@ -64,11 +68,24 @@ Java_com_blood_bilibili_ScreenLive_connect(JNIEnv *env, jobject thiz, jstring ur
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_blood_bilibili_ScreenLive_sendData(JNIEnv *env, jobject thiz, jbyteArray data_, jint len,
-                                            jlong tms) {
+                                            jlong tms, jint type) {
     int ret;
     jbyte *data = env->GetByteArrayElements(data_, nullptr);
-    ret = sendVideo(data, len, tms);
+    switch (type) {
+        case 0:
+            ret = sendVideo(data, len, tms); // video
+            break;
+        default:
+            ret = sendAudio(data, len, tms, type); // audio
+            break;
+    }
     env->ReleaseByteArrayElements(data_, data, 0);
+    return ret;
+}
+
+int sendAudio(const int8_t *buf, int len, long tms, int type) {
+    RTMPPacket *packet = createAudioPacket(buf, len, tms, type, liveData);
+    int ret = sendPacket(packet);
     return ret;
 }
 
@@ -209,4 +226,28 @@ void prepareSpsPps(const int8_t *buf, int len, LiveData *data) {
             }
         }
     }
+}
+
+RTMPPacket *createAudioPacket(const int8_t *buf, int len, long tms, int type, LiveData *data) {
+    // 组装音频包  两个字节   是固定的   af    如果是第一次发  你就是 01   如果后面  00  或者是 01  aac
+    int body_size = len + 2;
+    RTMPPacket *packet = (RTMPPacket *) malloc(sizeof(RTMPPacket));
+    RTMPPacket_Alloc(packet, body_size);
+    // 音频头
+    packet->m_body[0] = 0xAF;
+    // 头
+    if (type == 1) {
+        packet->m_body[1] = 0x00;
+    } else {
+        packet->m_body[1] = 0x01;
+    }
+    memcpy(&packet->m_body[2], buf, len);
+    packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
+    packet->m_nChannel = 0x05;
+    packet->m_nBodySize = body_size;
+    packet->m_nTimeStamp = tms;
+    packet->m_hasAbsTimestamp = 0;
+    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
+    packet->m_nInfoField2 = data->rtmp->m_stream_id;
+    return packet;
 }
