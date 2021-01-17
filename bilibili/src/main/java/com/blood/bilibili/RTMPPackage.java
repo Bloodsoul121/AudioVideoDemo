@@ -2,7 +2,7 @@ package com.blood.bilibili;
 
 public class RTMPPackage {
 
-    // 帧数据
+    // 帧数据，这里是有包含分隔符的，在jni传输时，会减掉
     private byte[] buffer;
 
     // 时间戳

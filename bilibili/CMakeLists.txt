@@ -16,4 +16,5 @@ find_library(
 target_link_libraries(
         bilibili-lib
         ${log-lib}
+        rtmp
 )

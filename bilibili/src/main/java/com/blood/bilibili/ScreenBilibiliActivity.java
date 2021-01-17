@@ -12,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class ScreenBilibiliActivity extends AppCompatActivity {
 
-    private static final String LIVE_URL = "rtmp://live-push.bilivideo.com/live-bvc/";
+    private static final String LIVE_URL = "rtmp://live-push.bilivideo.com/live-bvc/?streamname=live_312497503_45360587&key=d502577a2f405faecb48cd56f433d03f&schedule=rtmp";
 
     private MediaProjectionManager mMediaProjectionManager;
 

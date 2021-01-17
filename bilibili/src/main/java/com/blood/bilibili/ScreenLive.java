@@ -76,8 +76,8 @@ public class ScreenLive extends Thread {
         Log.i(TAG, "run: -----------> ScreenLive over");
     }
 
-    private native boolean sendData(byte[] data, int len, long tms);
-
     private native boolean connect(String url);
+
+    private native boolean sendData(byte[] data, int len, long tms);
 
 }
