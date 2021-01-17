@@ -16,10 +16,13 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.projection.MediaProjection;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Surface;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import static com.blood.bilibili.LiveConstant.TAG;
 
 public class VideoCodec implements Runnable {
 
@@ -94,5 +97,6 @@ public class VideoCodec implements Runnable {
         mMediaProjection.stop();
         mMediaProjection = null;
         mStartTime = 0;
+        Log.i(TAG, "run: -----------> VideoCodec over");
     }
 }

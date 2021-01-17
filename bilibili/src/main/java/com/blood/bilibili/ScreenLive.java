@@ -17,7 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static com.blood.bilibili.LiveConstant.TAG;
 
 // 传输层，通过 rtmp 传输数据
-public class ScreenLive implements Runnable {
+public class ScreenLive extends Thread {
 
     static {
         System.loadLibrary("bilibili-lib");
@@ -34,12 +34,13 @@ public class ScreenLive implements Runnable {
         mLiveUrl = liveUrl;
         mMediaProjection = mediaProjection;
         mVideoCodec = new VideoCodec(this);
-        ThreadPoolUtil.getInstance().start(this);
+        start();
     }
 
     public void stopLive() {
         mIsLiving = false;
         mVideoCodec.stopLive();
+        interrupt();
     }
 
     public void addPackage(RTMPPackage rtmpPackage) {
@@ -67,11 +68,12 @@ public class ScreenLive implements Runnable {
                 e.printStackTrace();
             }
 
-            if (rtmpPackage.getBuffer() != null && rtmpPackage.getBuffer().length != 0) {
+            if (rtmpPackage != null && rtmpPackage.getBuffer() != null && rtmpPackage.getBuffer().length != 0) {
                 Log.i(TAG, "run: ----------->推送 " + rtmpPackage.getBuffer().length);
                 sendData(rtmpPackage.getBuffer(), rtmpPackage.getBuffer().length, rtmpPackage.getTms());
             }
         }
+        Log.i(TAG, "run: -----------> ScreenLive over");
     }
 
     private native boolean sendData(byte[] data, int len, long tms);
