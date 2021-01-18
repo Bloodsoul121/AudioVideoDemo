@@ -26,8 +26,6 @@ import com.example.avd.mv_split_compose.MvSplitComposeActivity;
 import com.example.avd.screen.ScreenActivity;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
-import io.reactivex.functions.Consumer;
-
 public class MainActivity extends BaseActivity {
 
     @Override
@@ -40,17 +38,20 @@ public class MainActivity extends BaseActivity {
     @SuppressLint("CheckResult")
     public void requestPermissions() {
         RxPermissions rxPermissions = new RxPermissions(this);
-        rxPermissions.request(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE).subscribe(new Consumer<Boolean>() {
-            @Override
-            public void accept(Boolean aBoolean) {
-                if (aBoolean) {
-                    toast("accept");
-                } else {
-                    toast("deny");
-                    finish();
-                }
-            }
-        });
+        rxPermissions.request(
+                Manifest.permission.CAMERA,
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+                .subscribe(aBoolean -> {
+                    if (aBoolean) {
+                        toast("accept");
+                    } else {
+                        toast("deny");
+                        finish();
+                    }
+                });
     }
 
     public void clickBtn1(View view) {

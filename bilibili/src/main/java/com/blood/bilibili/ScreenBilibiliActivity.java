@@ -16,7 +16,7 @@ public class ScreenBilibiliActivity extends AppCompatActivity {
 
     private MediaProjectionManager mMediaProjectionManager;
 
-    private final ScreenLive mScreenLive = new ScreenLive();
+    private ScreenLive mScreenLive;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +35,10 @@ public class ScreenBilibiliActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == 100) {
             MediaProjection mediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
+            if (mScreenLive != null) {
+                mScreenLive.stopLive();
+            }
+            mScreenLive = new ScreenLive();
             mScreenLive.startLive(LIVE_URL, mediaProjection);
         }
     }
@@ -42,6 +46,8 @@ public class ScreenBilibiliActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mScreenLive.stopLive();
+        if (mScreenLive != null) {
+            mScreenLive.stopLive();
+        }
     }
 }
