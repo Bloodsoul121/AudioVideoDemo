@@ -25,6 +25,7 @@ public class ScreenBilibiliActivity extends AppCompatActivity {
     }
 
     public void startLive(View view) {
+        stopLive();
         mMediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         Intent intent = mMediaProjectionManager.createScreenCaptureIntent();
         startActivityForResult(intent, 100);
@@ -35,17 +36,22 @@ public class ScreenBilibiliActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == 100) {
             MediaProjection mediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, data);
-            if (mScreenLive != null) {
-                mScreenLive.stopLive();
-            }
-            mScreenLive = new ScreenLive();
-            mScreenLive.startLive(LIVE_URL, mediaProjection);
+            startLive(mediaProjection);
         }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopLive();
+    }
+
+    private void startLive(MediaProjection mediaProjection) {
+        mScreenLive = new ScreenLive();
+        mScreenLive.startLive(LIVE_URL, mediaProjection);
+    }
+
+    private void stopLive() {
         if (mScreenLive != null) {
             mScreenLive.stopLive();
         }
