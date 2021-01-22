@@ -7,7 +7,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
+import androidx.camera.core.CameraInfoUnavailableException
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.CameraSelector.Builder
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCapture.OnImageSavedCallback
@@ -43,8 +45,10 @@ class CameraXActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var binding: ActivityCameraXBinding
 
+    private var cameraProvider: ProcessCameraProvider? = null
     private var imageCapture: ImageCapture? = null
     private var imageAnalyzer: ImageAnalysis? = null
+    private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
 
     private fun getOutputDirectory(): File {
         val mediaDir = externalMediaDirs.firstOrNull()?.let {
@@ -67,6 +71,11 @@ class CameraXActivity : AppCompatActivity() {
     private fun init() {
         outputDirectory = getOutputDirectory()
         cameraExecutor = Executors.newSingleThreadExecutor()
+        binding.btnSwitch.isEnabled = false
+        binding.btnSwitch.setOnClickListener {
+            lensFacing = if (CameraSelector.LENS_FACING_FRONT == lensFacing) CameraSelector.LENS_FACING_BACK else CameraSelector.LENS_FACING_FRONT
+            bindCameraUseCases()
+        }
         binding.btnCapture.setOnClickListener { takePhoto() }
         startCamera()
     }
@@ -79,49 +88,85 @@ class CameraXActivity : AppCompatActivity() {
         return AspectRatio.RATIO_16_9
     }
 
+    private fun hasBackCamera(): Boolean {
+        return cameraProvider?.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA) ?: false
+    }
+
+    private fun hasFrontCamera(): Boolean {
+        return cameraProvider?.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA) ?: false
+    }
+
+    private fun updateCameraSwitchButton() {
+        try {
+            binding.btnSwitch.isEnabled = hasBackCamera() && hasFrontCamera()
+        } catch (exception: CameraInfoUnavailableException) {
+            binding.btnSwitch.isEnabled = false
+        }
+    }
+
     private fun startCamera() {
         // ProcessCameraProvider 用于将摄像机的生命周期绑定到生命周期所有者。
         // 由于CameraX具有生命周期感知功能，因此省去了打开和关闭相机的任务。
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         // 将侦听器添加到中cameraProviderFuture
         cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-            // 从取景器中获取表面提供程序，然后在预览中进行设置。
-            val preview = Preview.Builder().build().also { it.setSurfaceProvider(binding.previewView.surfaceProvider) }
-            // 前后摄像头
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
-            val metrics = DisplayMetrics().also { binding.previewView.display.getRealMetrics(it) }
-            Log.d(TAG, "Screen metrics: ${metrics.widthPixels} x ${metrics.heightPixels}")
+            cameraProvider = cameraProviderFuture.get()
 
-            val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
-            Log.d(TAG, "Preview aspect ratio: $screenAspectRatio")
-
-            val rotation = binding.previewView.display.rotation
-
-            imageCapture = ImageCapture.Builder()
-                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                    .setTargetAspectRatio(screenAspectRatio)
-                    .setTargetRotation(rotation)
-                    .build()
-
-            imageAnalyzer = ImageAnalysis.Builder()
-                    .setTargetAspectRatio(screenAspectRatio)
-                    .setTargetRotation(rotation)
-                    .build()
-                    .also {
-                        it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { luma ->
-                            Log.d(TAG, "Average luminosity: $luma")
-                        })
-                    }
-
-            try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture, imageAnalyzer)
-            } catch (exc: Exception) {
-                Log.e(TAG, "Use case binding failed", exc)
+            lensFacing = when {
+                hasBackCamera() -> CameraSelector.LENS_FACING_BACK
+                hasFrontCamera() -> CameraSelector.LENS_FACING_FRONT
+                else -> throw IllegalStateException("Back and front camera are unavailable")
             }
+
+            updateCameraSwitchButton()
+
+            bindCameraUseCases()
+
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun bindCameraUseCases() {
+        // 前后摄像头
+        val cameraSelector = Builder().requireLensFacing(lensFacing).build()
+
+        val metrics = DisplayMetrics().also { binding.previewView.display.getRealMetrics(it) }
+        Log.d(TAG, "Screen metrics: ${metrics.widthPixels} x ${metrics.heightPixels}")
+
+        val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
+        Log.d(TAG, "Preview aspect ratio: $screenAspectRatio")
+
+        val rotation = binding.previewView.display.rotation
+
+        // 从取景器中获取表面提供程序，然后在预览中进行设置。
+        val preview = Preview.Builder()
+                .setTargetAspectRatio(screenAspectRatio)
+                .setTargetRotation(rotation)
+                .build()
+                .also { it.setSurfaceProvider(binding.previewView.surfaceProvider) }
+
+        imageCapture = ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setTargetAspectRatio(screenAspectRatio)
+                .setTargetRotation(rotation)
+                .build()
+
+        imageAnalyzer = ImageAnalysis.Builder()
+                .setTargetAspectRatio(screenAspectRatio)
+                .setTargetRotation(rotation)
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { luma ->
+                        Log.d(TAG, "Average luminosity: $luma")
+                    })
+                }
+
+        try {
+            cameraProvider?.unbindAll()
+            cameraProvider?.bindToLifecycle(this, cameraSelector, preview, imageCapture, imageAnalyzer)
+        } catch (exc: Exception) {
+            Log.e(TAG, "Use case binding failed", exc)
+        }
     }
 
     private fun takePhoto() {
