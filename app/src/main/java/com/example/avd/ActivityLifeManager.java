@@ -6,7 +6,7 @@ import java.lang.ref.WeakReference;
 
 public class ActivityLifeManager {
 
-    private static ActivityLifeManager sInstance = new ActivityLifeManager();
+    private static final ActivityLifeManager sInstance = new ActivityLifeManager();
 
     private WeakReference<Activity> sCurrentActivityWeakRef;
 
