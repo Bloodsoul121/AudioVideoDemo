@@ -2,9 +2,11 @@ package com.example.avd.camerax
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
@@ -24,12 +26,17 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 class CameraXActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CameraXActivity"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+        private const val RATIO_4_3_VALUE = 4.0 / 3.0
+        private const val RATIO_16_9_VALUE = 16.0 / 9.0
     }
 
     private lateinit var outputDirectory: File
@@ -64,6 +71,14 @@ class CameraXActivity : AppCompatActivity() {
         startCamera()
     }
 
+    private fun aspectRatio(width: Int, height: Int): Int {
+        val previewRatio = max(width, height).toDouble() / min(width, height)
+        if (abs(previewRatio - RATIO_4_3_VALUE) <= abs(previewRatio - RATIO_16_9_VALUE)) {
+            return AspectRatio.RATIO_4_3
+        }
+        return AspectRatio.RATIO_16_9
+    }
+
     private fun startCamera() {
         // ProcessCameraProvider 用于将摄像机的生命周期绑定到生命周期所有者。
         // 由于CameraX具有生命周期感知功能，因此省去了打开和关闭相机的任务。
@@ -76,9 +91,23 @@ class CameraXActivity : AppCompatActivity() {
             // 前后摄像头
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
-            imageCapture = ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build()
+            val metrics = DisplayMetrics().also { binding.previewView.display.getRealMetrics(it) }
+            Log.d(TAG, "Screen metrics: ${metrics.widthPixels} x ${metrics.heightPixels}")
+
+            val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
+            Log.d(TAG, "Preview aspect ratio: $screenAspectRatio")
+
+            val rotation = binding.previewView.display.rotation
+
+            imageCapture = ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
+                    .build()
 
             imageAnalyzer = ImageAnalysis.Builder()
+                    .setTargetAspectRatio(screenAspectRatio)
+                    .setTargetRotation(rotation)
                     .build()
                     .also {
                         it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { luma ->
@@ -101,7 +130,7 @@ class CameraXActivity : AppCompatActivity() {
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
         imageCapture.takePicture(outputOptions, ContextCompat.getMainExecutor(this), object : OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: OutputFileResults) {
-                val saveUri = Uri.fromFile(photoFile)
+                val saveUri = outputFileResults.savedUri ?: Uri.fromFile(photoFile)
                 val msg = "Photo capture succeeded: $saveUri"
                 Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
                 Log.d(TAG, msg)
