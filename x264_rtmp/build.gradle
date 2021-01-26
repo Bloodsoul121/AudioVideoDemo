@@ -10,7 +10,7 @@ android {
     buildToolsVersion "30.0.2"
 
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -21,7 +21,6 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags ""
-//                abiFilters 'armeabi-v7a'
             }
         }
     }
@@ -42,7 +41,8 @@ android {
 
     externalNativeBuild {
         cmake {
-            path file('CMakeLists.txt')
+            // 需要先编译v8a的x264包进来
+//            path file('CMakeLists.txt')
         }
     }
 }
