@@ -16,14 +16,13 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.blood.x264_rtmp.R.layout
 import com.blood.x264_rtmp.databinding.ActivityX264RtmpBinding
+import com.blood.x264_rtmp.push.LivePusher
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-
-typealias LumaListener = (luma: Double) -> Unit
 
 class X264RtmpActivity : AppCompatActivity() {
 
@@ -40,15 +39,22 @@ class X264RtmpActivity : AppCompatActivity() {
     private var imageAnalyzer: ImageAnalysis? = null
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
 
+    private val url = ""
+    private lateinit var livePusher: LivePusher
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, layout.activity_x264_rtmp)
         init()
+
+        // 宽高随便设，以相机尺寸为准
+        livePusher = LivePusher(0, 0, 800_000, 10)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
+        livePusher.stopLive()
     }
 
     private fun init() {
@@ -58,8 +64,8 @@ class X264RtmpActivity : AppCompatActivity() {
             lensFacing = if (CameraSelector.LENS_FACING_FRONT == lensFacing) CameraSelector.LENS_FACING_BACK else CameraSelector.LENS_FACING_FRONT
             bindCameraUseCases()
         }
-        binding.btnStartLive.setOnClickListener { startLive() }
-        binding.btnStopLive.setOnClickListener { stopLive() }
+        binding.btnStartLive.setOnClickListener { livePusher.startLive(url) }
+        binding.btnStopLive.setOnClickListener { livePusher.stopLive() }
         startCamera()
     }
 
@@ -115,6 +121,7 @@ class X264RtmpActivity : AppCompatActivity() {
 
         val metrics = DisplayMetrics().also { binding.previewView.display.getRealMetrics(it) }
         Log.d(TAG, "Screen metrics: ${metrics.widthPixels} x ${metrics.heightPixels}")
+        livePusher.videoChannel?.onSizeChanged(metrics.widthPixels, metrics.heightPixels)
 
         val screenAspectRatio = aspectRatio(metrics.widthPixels, metrics.heightPixels)
         Log.d(TAG, "Preview aspect ratio: $screenAspectRatio")
@@ -132,7 +139,11 @@ class X264RtmpActivity : AppCompatActivity() {
                 .setTargetAspectRatio(screenAspectRatio)
                 .setTargetRotation(rotation)
                 .build()
-                .also { it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { luma -> Log.d(TAG, "Average luminosity: $luma") }) }
+                .also {
+                    it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { y: ByteArray, u: ByteArray, v: ByteArray, width: Int, height: Int, rowStride: Int ->
+                        livePusher.videoChannel?.analyzeFrameData(y, u, v, width, height, rowStride)
+                    })
+                }
 
         try {
             cameraProvider?.unbindAll()
@@ -142,7 +153,7 @@ class X264RtmpActivity : AppCompatActivity() {
         }
     }
 
-    private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnalysis.Analyzer {
+    private class LuminosityAnalyzer(private val listener: (y: ByteArray, u: ByteArray, v: ByteArray, width: Int, height: Int, rowStride: Int) -> Unit) : ImageAnalysis.Analyzer {
 
         private fun ByteBuffer.toByteArray(): ByteArray {
             rewind()    // Rewind the buffer to zero
@@ -152,21 +163,12 @@ class X264RtmpActivity : AppCompatActivity() {
         }
 
         override fun analyze(image: ImageProxy) {
-            val buffer = image.planes[0].buffer
-            val data = buffer.toByteArray()
-            val pixels = data.map { it.toInt() and 0xFF }
-            val luma = pixels.average()
-            listener(luma)
+            val y = image.planes[0].buffer.toByteArray()
+            val u = image.planes[1].buffer.toByteArray()
+            val v = image.planes[2].buffer.toByteArray()
+            listener(y, u, v, image.width, image.height, image.planes[0].rowStride)
             image.close()
         }
-    }
-
-    private fun startLive() {
-
-    }
-
-    private fun stopLive() {
-
     }
 
 }

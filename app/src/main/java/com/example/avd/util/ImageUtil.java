@@ -1,4 +1,4 @@
-package com.example.avd.camera2;
+package com.example.avd.util;
 
 public class ImageUtil {
 
