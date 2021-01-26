@@ -9,6 +9,7 @@ import android.view.View;
 import com.blood.bilibili.ScreenBilibiliActivity;
 import com.blood.giflib.GifActivity;
 import com.blood.jni.JniActivity;
+import com.blood.x264_rtmp.X264RtmpActivity;
 import com.example.avd.aac.AACActivity;
 import com.example.avd.audio_encode_decode.AudioEncodeDecodeActivity;
 import com.example.avd.audio_record.AudioRecordActivity;
@@ -129,5 +130,9 @@ public class MainActivity extends BaseActivity {
 
     public void clickBtn19(View view) {
         startActivity(new Intent(this, CameraXActivity.class));
+    }
+
+    public void clickBtn20(View view) {
+        startActivity(new Intent(this, X264RtmpActivity.class));
     }
 }
