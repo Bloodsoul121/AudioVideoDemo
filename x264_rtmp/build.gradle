@@ -42,7 +42,7 @@ android {
     externalNativeBuild {
         cmake {
             // 需要先编译v8a的x264包进来
-//            path file('CMakeLists.txt')
+            path file('CMakeLists.txt')
         }
     }
 }

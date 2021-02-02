@@ -6,10 +6,10 @@ add_subdirectory(src/main/cpp/librtmp)
 file(GLOB cpp_source src/main/cpp/*.cpp)
 
 #头文件成功引入
-include_directories(src/main/cpp/x264/${ANDROID_ABI}/include)
+include_directories(${CMAKE_SOURCE_DIR}/src/main/cpp/x264/${ANDROID_ABI}/include)
 
 #静态库 FFmpeg
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Lsrc/main/cpp/x264/${ANDROID_ABI}/lib")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${CMAKE_SOURCE_DIR}/src/main/cpp/x264/${ANDROID_ABI}/lib")
 
 add_library(
         x264rtmp-lib
