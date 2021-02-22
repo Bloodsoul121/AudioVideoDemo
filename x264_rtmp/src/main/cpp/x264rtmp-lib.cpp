@@ -94,6 +94,7 @@ void *start(void *args) {
         RTMP_Free(rtmp);
     }
     delete url;
+    isStart = 0;
     return nullptr;
 }
 
