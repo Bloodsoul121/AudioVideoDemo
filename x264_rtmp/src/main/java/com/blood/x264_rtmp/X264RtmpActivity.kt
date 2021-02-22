@@ -39,7 +39,7 @@ class X264RtmpActivity : AppCompatActivity() {
     private var imageAnalyzer: ImageAnalysis? = null
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
 
-    private val url = ""
+    private val url = "rtmp://live-push.bilivideo.com/live-bvc/?streamname=live_312497503_45360587&key=d502577a2f405faecb48cd56f433d03f&schedule=rtmp"
     private lateinit var livePusher: LivePusher
 
     override fun onCreate(savedInstanceState: Bundle?) {
