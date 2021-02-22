@@ -122,7 +122,9 @@ Java_com_blood_x264_1rtmp_push_LivePusher_native_1setVideoEncInfo(JNIEnv *env, j
                                                                   jint width, jint height, jint fps,
                                                                   jint bitrate) {
     // 配置信息
-    videoChannel->setVideoEncInfo(width, height, fps, bitrate);
+    if (videoChannel) {
+        videoChannel->setVideoEncInfo(width, height, fps, bitrate);
+    }
 }
 
 extern "C"

@@ -105,7 +105,8 @@ void VideoChannel::encodeframe(int8_t *data) {
 
     if (pi_nal > 0) {
         for (int i = 0; i < pi_nal; i++) {
-            javaCallHelper->postH264(reinterpret_cast<char *>(pp_nal[i].p_payload), pp_nal[i].i_payload, THREAD_CHILD);
+            javaCallHelper->postH264(reinterpret_cast<char *>(pp_nal[i].p_payload), pp_nal[i].i_payload, THREAD_MAIN);
+//            javaCallHelper->postH264(reinterpret_cast<char *>(pp_nal[i].p_payload), pp_nal[i].i_payload, THREAD_CHILD);
         }
     }
 }

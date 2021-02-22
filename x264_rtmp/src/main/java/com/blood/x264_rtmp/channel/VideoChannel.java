@@ -1,5 +1,7 @@
 package com.blood.x264_rtmp.channel;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.blood.x264_rtmp.push.LivePusher;
@@ -17,6 +19,11 @@ public class VideoChannel {
     private byte[] nv21;
     private byte[] nv21_rotated;
     private byte[] nv12;
+
+    private boolean isFirstInit = true;
+
+    private Handler mHandler = new Handler(Looper.getMainLooper());
+    private boolean mIsTest = true;
 
     public VideoChannel(LivePusher livePusher, int width, int height, int bitrate, int fps) {
         mLivePusher = livePusher;
@@ -40,8 +47,20 @@ public class VideoChannel {
     }
 
     public void analyzeFrameData(byte[] y, byte[] u, byte[] v, int width, int height, int rowStride) {
-//        Log.i("VideoChannel", "analyzeFrameData: thread " + Thread.currentThread().getName());
+        if (mIsTest) {
+            mHandler.post(() -> analyze(y, u, v, width, height, rowStride));
+        } else {
+            analyze(y, u, v, width, height, rowStride);
+        }
+    }
+
+    private void analyze(byte[] y, byte[] u, byte[] v, int width, int height, int rowStride) {
         if (mIsLiving) {
+            if (isFirstInit) {
+                isFirstInit = false;
+                // 配置真实宽高，以最终传到编码器的为准
+                mLivePusher.native_setVideoEncInfo(height, width, mFps, mBitrate);
+            }
             if (nv21 == null) {
                 nv21 = new byte[rowStride * height * 3 / 2];
                 nv21_rotated = new byte[rowStride * height * 3 / 2];
