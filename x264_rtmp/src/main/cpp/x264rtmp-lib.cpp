@@ -13,15 +13,23 @@ extern "C" {
 #include  "librtmp/rtmp.h"
 }
 
-#include "safe_queue.h"
+#include "util/safe_queue.h"
 #include "VideoChannel.h"
 
 VideoChannel *videoChannel = nullptr;
+JavaCallHelper *javaCallHelper = nullptr;
 int isStart = 0;//是否已开播
 pthread_t pid;//记录子线程的对象
 int readyPushing = 0;//推流标志位
 SafeQueue<RTMPPacket *> packets;//阻塞式队列
 uint32_t start_time;
+JavaVM *javaVM = nullptr;//虚拟机的引用
+
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    javaVM = vm;
+    LOGE("保存虚拟机的引用");
+    return JNI_VERSION_1_4;
+}
 
 void releasePackets(RTMPPacket *&packet) {
     if (packet) {
@@ -101,8 +109,11 @@ void *start(void *args) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_blood_x264_1rtmp_push_LivePusher_native_1init(JNIEnv *env, jobject thiz) {
+    // 回调  子线程
+    javaCallHelper = new JavaCallHelper(javaVM, env, thiz);
     // 实例化编码层
     videoChannel = new VideoChannel;
+    videoChannel->javaCallHelper = javaCallHelper;
 }
 
 extern "C"

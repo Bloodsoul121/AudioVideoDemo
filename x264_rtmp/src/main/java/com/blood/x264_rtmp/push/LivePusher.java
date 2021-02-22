@@ -1,6 +1,12 @@
 package com.blood.x264_rtmp.push;
 
+import android.os.Environment;
+import android.util.Log;
+
 import com.blood.x264_rtmp.channel.VideoChannel;
+import com.blood.x264_rtmp.util.FileUtil;
+
+import java.io.File;
 
 public class LivePusher {
 
@@ -27,6 +33,13 @@ public class LivePusher {
     public void stopLive(){
         mVideoChannel.stopLive();
         native_stop();
+    }
+
+    // jni回调java层的方法  byte[] data    char *data
+    private void postData(byte[] data) {
+        Log.i("rtmp", "postData: "+data.length);
+        FileUtil.writeContent(data, new File(Environment.getExternalStorageDirectory(), "x264codec.txt"));
+        FileUtil.writeBytes(data, new File(Environment.getExternalStorageDirectory(), "x264codec.h264"));
     }
 
     // 初始化

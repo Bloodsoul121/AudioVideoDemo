@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include <jni.h>
 #include <x264.h>
+#include "util/JavaCallHelper.h"
 
 class VideoChannel {
 public:
@@ -37,6 +38,9 @@ private:
 
     // yuv-->h264 平台 容器 x264_picture_t=bytebuffer
     x264_picture_t *pic_in = 0;
+
+public:
+    JavaCallHelper *javaCallHelper;
 };
 
 #endif //AUDIOVIDEODEMO_VIDEOCHANNEL_H

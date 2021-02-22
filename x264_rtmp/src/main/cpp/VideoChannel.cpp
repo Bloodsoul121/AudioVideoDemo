@@ -4,7 +4,7 @@
 
 #include <cstring>
 #include "VideoChannel.h"
-#include "logutil.h"
+#include "util/logutil.h"
 
 VideoChannel::VideoChannel() {
 
@@ -101,7 +101,13 @@ void VideoChannel::encodeframe(int8_t *data) {
     //关键的一句话，编码
     x264_encoder_encode(videoCodec, &pp_nal, &pi_nal, pic_in, &pic_out);
 
-    LOGI("encodeframe %d", pi_nal);
+    LOGI("编码帧数 %d", pi_nal);
+
+    if (pi_nal > 0) {
+        for (int i = 0; i < pi_nal; i++) {
+            javaCallHelper->postH264(reinterpret_cast<char *>(pp_nal[i].p_payload), pp_nal[i].i_payload, THREAD_CHILD);
+        }
+    }
 }
 
 

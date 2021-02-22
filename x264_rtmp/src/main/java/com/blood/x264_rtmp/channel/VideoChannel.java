@@ -1,5 +1,7 @@
 package com.blood.x264_rtmp.channel;
 
+import android.util.Log;
+
 import com.blood.x264_rtmp.push.LivePusher;
 import com.blood.x264_rtmp.util.ImageUtil;
 
@@ -38,6 +40,7 @@ public class VideoChannel {
     }
 
     public void analyzeFrameData(byte[] y, byte[] u, byte[] v, int width, int height, int rowStride) {
+//        Log.i("VideoChannel", "analyzeFrameData: thread " + Thread.currentThread().getName());
         if (mIsLiving) {
             if (nv21 == null) {
                 nv21 = new byte[rowStride * height * 3 / 2];
