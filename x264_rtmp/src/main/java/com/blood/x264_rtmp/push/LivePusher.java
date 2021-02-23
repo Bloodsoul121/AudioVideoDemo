@@ -3,6 +3,7 @@ package com.blood.x264_rtmp.push;
 import android.os.Environment;
 import android.util.Log;
 
+import com.blood.x264_rtmp.channel.AudioChannel;
 import com.blood.x264_rtmp.channel.VideoChannel;
 import com.blood.x264_rtmp.util.FileUtil;
 
@@ -15,10 +16,12 @@ public class LivePusher {
     }
 
     private final VideoChannel mVideoChannel;
+    private final AudioChannel mAudioChannel;
 
     public LivePusher(int width, int height, int bitrate, int fps) {
         native_init();
         mVideoChannel = new VideoChannel(this, width, height, bitrate, fps);
+        mAudioChannel = new AudioChannel();
     }
 
     public VideoChannel getVideoChannel() {
@@ -28,10 +31,12 @@ public class LivePusher {
     public void startLive(String path) {
         native_start(path);
         mVideoChannel.startLive();
+        mAudioChannel.startLive();
     }
 
     public void stopLive(){
         mVideoChannel.stopLive();
+        mAudioChannel.stopLive();
         native_stop();
     }
 
@@ -53,4 +58,6 @@ public class LivePusher {
     public native void native_pushVideo(byte[] data);
 
     public native void native_stop();
+
+    public native void native_release();
 }

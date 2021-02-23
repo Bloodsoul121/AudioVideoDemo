@@ -23,7 +23,7 @@ public class VideoChannel {
     private boolean isFirstInit = true;
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
-    private boolean mIsTest = true;
+    private boolean mIsTest = false;
 
     public VideoChannel(LivePusher livePusher, int width, int height, int bitrate, int fps) {
         mLivePusher = livePusher;

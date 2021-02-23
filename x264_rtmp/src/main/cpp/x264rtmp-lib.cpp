@@ -18,12 +18,23 @@ extern "C" {
 
 VideoChannel *videoChannel = nullptr;
 JavaCallHelper *javaCallHelper = nullptr;
+RTMP *rtmp = nullptr;
 int isStart = 0;//是否已开播
-pthread_t pid;//记录子线程的对象
 int readyPushing = 0;//推流标志位
+pthread_t pid;//记录子线程的对象
 SafeQueue<RTMPPacket *> packets;//阻塞式队列
-uint32_t start_time;
 JavaVM *javaVM = nullptr;//虚拟机的引用
+uint32_t start_time;
+
+void callBack(RTMPPacket *packet) {
+    if (packet) {
+        if (packets.size() > 50) {
+            packets.clear();
+        }
+        packet->m_nTimeStamp = RTMP_GetTime() - start_time;
+        packets.push(packet);
+    }
+}
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     javaVM = vm;
@@ -41,7 +52,6 @@ void releasePackets(RTMPPacket *&packet) {
 
 void *start(void *args) {
     char *url = static_cast<char *>(args);
-    RTMP *rtmp = nullptr;
     do {
         rtmp = RTMP_Alloc();
         if (!rtmp) {
@@ -114,6 +124,7 @@ Java_com_blood_x264_1rtmp_push_LivePusher_native_1init(JNIEnv *env, jobject thiz
     // 实例化编码层
     videoChannel = new VideoChannel;
     videoChannel->javaCallHelper = javaCallHelper;
+    videoChannel->setVideoCallback(callBack);
 }
 
 extern "C"
@@ -163,4 +174,22 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_blood_x264_1rtmp_push_LivePusher_native_1stop(JNIEnv *env, jobject thiz) {
 
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_blood_x264_1rtmp_push_LivePusher_native_1release(JNIEnv *env, jobject thiz) {
+    if(rtmp) {
+        RTMP_Close(rtmp);
+        RTMP_Free(rtmp);
+        rtmp = nullptr;
+    }
+    if (videoChannel) {
+        delete (videoChannel);
+        videoChannel = nullptr;
+    }
+    if (javaCallHelper) {
+        delete (javaCallHelper);
+        javaCallHelper = nullptr;
+    }
 }

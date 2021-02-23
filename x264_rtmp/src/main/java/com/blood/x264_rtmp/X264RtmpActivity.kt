@@ -55,6 +55,7 @@ class X264RtmpActivity : AppCompatActivity() {
         super.onDestroy()
         cameraExecutor.shutdown()
         livePusher.stopLive()
+        livePusher.native_release()
     }
 
     private fun init() {
