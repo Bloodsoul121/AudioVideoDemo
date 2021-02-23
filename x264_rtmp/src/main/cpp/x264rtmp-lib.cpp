@@ -15,7 +15,9 @@ extern "C" {
 
 #include "util/safe_queue.h"
 #include "VideoChannel.h"
+#include "AudioChannel.h"
 
+AudioChannel *audioChannel = nullptr;
 VideoChannel *videoChannel = nullptr;
 JavaCallHelper *javaCallHelper = nullptr;
 RTMP *rtmp = nullptr;
@@ -86,6 +88,11 @@ void *start(void *args) {
         start_time = RTMP_GetTime();
         packets.setWork(1);
         RTMPPacket *packet = nullptr;
+
+        // 音频 发送头包
+        RTMPPacket *audioHeader = audioChannel->getAudioConfig();
+        callBack(audioHeader);
+
         //循环从队列取包 然后发送
         while (isStart) {
             packets.pop(packet);
@@ -166,7 +173,7 @@ Java_com_blood_x264_1rtmp_push_LivePusher_native_1pushVideo(JNIEnv *env, jobject
         return;
     }
     jbyte *data = env->GetByteArrayElements(data_, nullptr);
-    videoChannel->encodeframe(data);
+    videoChannel->encodeFrame(data);
     env->ReleaseByteArrayElements(data_, data, 0);
 }
 
@@ -179,7 +186,7 @@ Java_com_blood_x264_1rtmp_push_LivePusher_native_1stop(JNIEnv *env, jobject thiz
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_blood_x264_1rtmp_push_LivePusher_native_1release(JNIEnv *env, jobject thiz) {
-    if(rtmp) {
+    if (rtmp) {
         RTMP_Close(rtmp);
         RTMP_Free(rtmp);
         rtmp = nullptr;
@@ -192,4 +199,31 @@ Java_com_blood_x264_1rtmp_push_LivePusher_native_1release(JNIEnv *env, jobject t
         delete (javaCallHelper);
         javaCallHelper = nullptr;
     }
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_blood_x264_1rtmp_push_LivePusher_nativeInitAudioEnc(JNIEnv *env, jobject thiz, jint sample_rate,
+                                                       jint channels) {
+    // 初始化faac编码  音频
+    audioChannel = new AudioChannel();
+    audioChannel->setCallback(callBack);
+    audioChannel->openCodec(sample_rate, channels);
+    return audioChannel->getInputByteNum();
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_blood_x264_1rtmp_push_LivePusher_nativeSendAudio(JNIEnv *env, jobject thiz, jbyteArray buffer,
+                                                    jint len) {
+    // 没有链接 成功
+    if (!audioChannel || !readyPushing) {
+        return;
+    }
+    //C层的字节数组
+    jbyte *data = env->GetByteArrayElements(buffer, nullptr);
+    //编码
+    audioChannel->encodeFrame(reinterpret_cast<int32_t *>(data), len);
+    //释放掉
+    env->ReleaseByteArrayElements(buffer, data, 0);
 }

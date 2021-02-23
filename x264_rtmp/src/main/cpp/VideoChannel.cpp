@@ -75,8 +75,7 @@ void VideoChannel::setVideoEncInfo(int width, int height, int fps, int bitrate) 
 }
 
 // 拿到yuv数据（nv12 YYYYYYYYUVUV），然后x264编码，生成h264数据
-void VideoChannel::encodeframe(int8_t *data) {
-    LOGI("encodeframe");
+void VideoChannel::encodeFrame(int8_t *data) {
     // 容器 y的数据
     memcpy(pic_in->img.plane[0], data, ySize);
     // uv
@@ -96,7 +95,7 @@ void VideoChannel::encodeframe(int8_t *data) {
     //编码出的参数  BufferInfo
     x264_picture_t pic_out;
 
-    LOGI("encodeframe encode %p %p", videoCodec, pic_in);
+    LOGI("encodeFrame encode %p %p", videoCodec, pic_in);
 
     //关键的一句话，编码
     x264_encoder_encode(videoCodec, &pp_nals, &pi_nal, pic_in, &pic_out);
@@ -197,7 +196,7 @@ void VideoChannel::sendFrame(int type, int payload, uint8_t *p_payload) {
 //    int type = payload[0] & 0x1f;
     //关键帧
     if (type == NAL_SLICE_IDR) {
-        LOGE("关键帧");
+        LOGI("关键帧");
         packet->m_body[0] = 0x17;
     }
     //类型

@@ -27,7 +27,7 @@ public:
     void setVideoEncInfo(int width, int height, int fps, int bitrate);
 
     // 编码一帧数据
-    void encodeframe(int8_t *data);
+    void encodeFrame(int8_t *data);
 
     void sendSpsPps(uint8_t *sps, uint8_t *pps, int len, int pps_len);
 
