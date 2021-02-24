@@ -33,7 +33,6 @@ void AudioChannel::openCodec(int sampleRate, int channels) {
 
     //实例化 输出的容器
     outputBuffer = static_cast<unsigned char *>(malloc(maxOutputBytes));
-    LOGE("初始化-> codec %d inputByteNum %d maxOutputBytes:%d ", codec, inputByteNum, maxOutputBytes);
 
     //参数
     faacEncConfigurationPtr configurationPtr = faacEncGetCurrentConfiguration(codec);
@@ -50,10 +49,10 @@ void AudioChannel::openCodec(int sampleRate, int channels) {
 }
 
 void AudioChannel::encodeFrame(int32_t *data, int len) {
-    LOGI("AudioChannel encodeFrame %p %d", codec, len);
+    LOGI("AudioChannel encodeFrame %p %p %d", codec, data, len);
     //将pcm数据编码成aac数据
     int bytelen = faacEncEncode(codec, data, len, outputBuffer, maxOutputBytes);
-    LOGI("AudioChannel faacEncEncode %d", bytelen);
+    LOGI("AudioChannel faacEncEncode bytelen : %d", bytelen);
     //outputBuffer   压缩1   原始 2
     if (bytelen > 0) {
         // 拼装packet  数据   NDK
@@ -72,7 +71,7 @@ void AudioChannel::encodeFrame(int32_t *data, int len) {
             this->callback(packet);
         }
 
-        LOGI("发送音频%d", bytelen);
+        LOGI("发送音频");
     }
 }
 

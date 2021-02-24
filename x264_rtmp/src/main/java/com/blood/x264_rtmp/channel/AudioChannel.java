@@ -54,25 +54,28 @@ public class AudioChannel {
         mHandler.post(() -> {
             mAudioRecord = new AudioRecord(
                     MediaRecorder.AudioSource.MIC,
-                    mSampleRate, mChannelConfig,
-                    AudioFormat.ENCODING_PCM_16BIT, mMinBufferSize);
+                    mSampleRate,
+                    mChannelConfig,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    mMinBufferSize);
             mAudioRecord.startRecording();
             while (mIsLiving && mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
                 // len实际长度len 打印下这个值  录音不成功
                 int len = mAudioRecord.read(mBuffer, 0, mBuffer.length);
-                Log.i("AudioChannel", "AudioRecord read len: " + len);
+//                Log.i("AudioChannel", "AudioRecord read len: " + len);
                 if (len > 0) {
                     mLivePusher.nativeSendAudio(mBuffer, len);
                 }
             }
-            Log.i("AudioChannel", "AudioRecord release");
-            mAudioRecord.release();
-            mAudioRecord = null;
+            Log.e("AudioChannel", "AudioRecord end");
         });
     }
 
     public void stopLive() {
         mIsLiving = false;
+        mAudioRecord.stop();
+        mAudioRecord.release();
+        mAudioRecord = null;
     }
 
 }
