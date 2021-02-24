@@ -59,12 +59,13 @@ public class AudioChannel {
                     AudioFormat.ENCODING_PCM_16BIT,
                     mMinBufferSize);
             mAudioRecord.startRecording();
-            while (mIsLiving && mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+            while (mAudioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
                 // len实际长度len 打印下这个值  录音不成功
                 int len = mAudioRecord.read(mBuffer, 0, mBuffer.length);
 //                Log.i("AudioChannel", "AudioRecord read len: " + len);
                 if (len > 0) {
-                    mLivePusher.nativeSendAudio(mBuffer, len);
+                    // 这里除以2很重要，因为底层是以32位进行读取的，双通道
+                    mLivePusher.nativeSendAudio(mBuffer, len / 2);
                 }
             }
             Log.e("AudioChannel", "AudioRecord end");
@@ -73,9 +74,11 @@ public class AudioChannel {
 
     public void stopLive() {
         mIsLiving = false;
-        mAudioRecord.stop();
-        mAudioRecord.release();
-        mAudioRecord = null;
+        if (mAudioRecord != null) {
+            mAudioRecord.stop();
+            mAudioRecord.release();
+            mAudioRecord = null;
+        }
     }
 
 }
