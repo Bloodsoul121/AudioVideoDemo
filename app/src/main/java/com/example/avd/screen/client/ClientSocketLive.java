@@ -33,7 +33,8 @@ public class ClientSocketLive {
 
     public void start() {
         try {
-            URI uri = new URI("ws://192.168.1.104:" + mServerPort);
+//            URI uri = new URI("ws://192.168.1.104:" + mServerPort);
+            URI uri = new URI("rtp://239.11.1.1:5004");
             mSocketClient = new ScreenWebSocketClient(mSocketCallback, uri);
             mSocketClient.connect();
         } catch (URISyntaxException e) {
@@ -78,12 +79,13 @@ public class ClientSocketLive {
 
         @Override
         public void onClose(int code, String reason, boolean remote) {
-            Log.i(TAG, "onClose: ");
+            Log.i(TAG, "onClose: " + code + " " + reason + " " + remote);
         }
 
         @Override
         public void onError(Exception ex) {
             Log.i(TAG, "onError: ");
+            ex.printStackTrace();
         }
     }
 

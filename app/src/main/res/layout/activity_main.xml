@@ -143,6 +143,12 @@
             android:text="投屏B站直播（x264软编）"
             tools:ignore="HardcodedText" />
 
+        <Button
+            style="@style/normal_button"
+            android:onClick="clickBtn21"
+            android:text="ffmpeg 软编解码"
+            tools:ignore="HardcodedText" />
+
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>
