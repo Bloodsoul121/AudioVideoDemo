@@ -9,14 +9,10 @@ add_library(
         src/main/cpp/ffmpeg-lib.cpp
 )
 
-find_library(
-        log-lib
-        log
-)
-
 target_link_libraries(
         ffmpeg-lib
-        ${log-lib}
+        log
+        android
         avcodec
         avdevice
         avfilter
