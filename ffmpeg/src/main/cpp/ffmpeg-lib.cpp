@@ -71,9 +71,21 @@ Java_com_cgz_ffmpeg_FfmpegActivity_play(JNIEnv *env, jobject thiz, jstring url_,
     LOGI("找到视频流 index %d", videoIndex);
 
     // h264 h265 实例化解码器
-    avCodecContext = avFormatContext->streams[videoIndex]->codec;
-//    AVCodecID avCodecId = avFormatContext->streams[videoIndex]->codecpar->codec_id;
-    videoCodec = avcodec_find_decoder(avCodecContext->codec_id);
+//    avCodecContext = avFormatContext->streams[videoIndex]->codec;
+//    videoCodec = avcodec_find_decoder(avCodecContext->codec_id);
+
+    AVCodecID avCodecId = avFormatContext->streams[videoIndex]->codecpar->codec_id;
+    videoCodec = avcodec_find_decoder(avCodecId);
+    avCodecContext = avcodec_alloc_context3(videoCodec);
+    avcodec_parameters_to_context(avCodecContext, avFormatContext->streams[videoIndex]->codecpar);
+
+    LOGI("avCodecContext->codec_id %d", avCodecContext->codec_id);
+    LOGI("avCodecContext->width %d", avCodecContext->width);
+    LOGI("avCodecContext->coded_width %d", avCodecContext->coded_width);
+    LOGI("avCodecContext->codec_type %d", avCodecContext->codec_type);
+    LOGI("avCodecContext->pix_fmt %d", avCodecContext->pix_fmt);
+    LOGI("avCodecContext->sw_pix_fmt %d", avCodecContext->sw_pix_fmt);
+    LOGI("avCodecContext->max_pixels %ld", avCodecContext->max_pixels);
 
     // 打开解码器
     if (avcodec_open2(avCodecContext, videoCodec, nullptr) < 0) {

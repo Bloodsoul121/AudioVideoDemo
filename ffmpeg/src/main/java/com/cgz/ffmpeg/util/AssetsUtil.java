@@ -18,7 +18,8 @@ public class AssetsUtil {
      * @param savePath  目标路径
      * @param saveName  目标文件名
      */
-    public static void copyFileFromAssets(Context context, String assetName, String savePath, String saveName) {
+    public static void copyFileFromAssets(Context context, String assetName, String savePath,
+                                          String saveName) {
         // 若目标文件夹不存在，则创建
         File dir = new File(savePath);
         if (!dir.exists()) {
@@ -31,42 +32,46 @@ public class AssetsUtil {
         // 拷贝文件
         String filename = savePath + "/" + saveName;
         File file = new File(filename);
-        if (!file.exists()) {
-            InputStream inStream = null;
-            FileOutputStream fileOutputStream = null;
-            try {
-                inStream  = context.getAssets().open(assetName);
-                fileOutputStream  = new FileOutputStream(filename);
-                int byteread;
-                byte[] buffer = new byte[1024];
-                while ((byteread = inStream.read(buffer)) != -1) {
-                    fileOutputStream.write(buffer, 0, byteread);
-                }
-                fileOutputStream.flush();
-                inStream.close();
-                fileOutputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (inStream != null) {
-                    try {
-                        inStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (fileOutputStream != null) {
-                    try {
-                        fileOutputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+        if (file.exists()) {
+            file.delete();
+        }
+
+//        if (!file.exists()) {
+        InputStream inStream = null;
+        FileOutputStream fileOutputStream = null;
+        try {
+            inStream = context.getAssets().open(assetName);
+            fileOutputStream = new FileOutputStream(filename);
+            int byteread;
+            byte[] buffer = new byte[1024];
+            while ((byteread = inStream.read(buffer)) != -1) {
+                fileOutputStream.write(buffer, 0, byteread);
+            }
+            fileOutputStream.flush();
+            inStream.close();
+            fileOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (inStream != null) {
+                try {
+                    inStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-            Log.d("FileUtils", "[copyFileFromAssets] copy asset file: " + assetName + " to : " + filename);
-        } else {
-            Log.d("FileUtils", "[copyFileFromAssets] file is exist: " + filename);
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
+        Log.d("FileUtils", "[copyFileFromAssets] copy asset file: " + assetName + " to : " + filename);
+//        } else {
+//            Log.d("FileUtils", "[copyFileFromAssets] file is exist: " + filename);
+//        }
     }
 
     /**
