@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.cgz.ffmpeg.databinding.ActivityFfmpegBinding
 import com.cgz.ffmpeg.util.AssetsUtil
 import java.io.File
+import kotlin.concurrent.thread
 
 class FfmpegActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
@@ -15,6 +16,7 @@ class FfmpegActivity : AppCompatActivity(), SurfaceHolder.Callback {
         init {
             System.loadLibrary("ffmpeg-lib")
         }
+
         private const val TAG = "FfmpegActivity"
     }
 
@@ -27,8 +29,7 @@ class FfmpegActivity : AppCompatActivity(), SurfaceHolder.Callback {
         setContentView(binding.root)
 
         val saveDir = File(filesDir, "ffmpeg").absolutePath
-//        AssetsUtil.copyFileFromAssets(this, "ffmpeg/hot.mp4", saveDir, "ffmpeg.mp4")
-        AssetsUtil.copyFileFromAssets(this, "input2.mp4", saveDir, "ffmpeg.mp4")
+        AssetsUtil.copyFileFromAssets(this, "ffmpeg/hot.mp4", saveDir, "ffmpeg.mp4")
         url = File(saveDir, "ffmpeg.mp4").absolutePath
 
         binding.tv.text = testFfmpeg()
@@ -37,7 +38,7 @@ class FfmpegActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         Log.i(TAG, "surfaceCreated: url >> $url")
-        play(url, holder.surface)
+        thread { play(url, holder.surface) }
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {

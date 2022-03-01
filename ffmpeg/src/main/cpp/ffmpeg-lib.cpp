@@ -70,18 +70,30 @@ Java_com_cgz_ffmpeg_FfmpegActivity_play(JNIEnv *env, jobject thiz, jstring url_,
     }
     LOGI("找到视频流 index %d", videoIndex);
 
+    LOGI("av_dump_format start");
+    av_dump_format(avFormatContext, videoIndex, url, 0);
+    LOGI("av_dump_format end");
+
     // h264 h265 实例化解码器
 //    avCodecContext = avFormatContext->streams[videoIndex]->codec;
 //    videoCodec = avcodec_find_decoder(avCodecContext->codec_id);
 
-    AVCodecID avCodecId = avFormatContext->streams[videoIndex]->codecpar->codec_id;
-    videoCodec = avcodec_find_decoder(avCodecId);
+    AVCodecParameters *codecpar = avFormatContext->streams[videoIndex]->codecpar;
+    videoCodec = avcodec_find_decoder(codecpar->codec_id);
     avCodecContext = avcodec_alloc_context3(videoCodec);
-    avcodec_parameters_to_context(avCodecContext, avFormatContext->streams[videoIndex]->codecpar);
+    int ret = avcodec_parameters_to_context(avCodecContext, codecpar);
+    if (ret < 0) {
+        LOGE("videoParameters to context failed!");
+        avformat_close_input(&avFormatContext);
+        return -1;
+    }
 
+    LOGI("codecpar->format %d", codecpar->format);
     LOGI("avCodecContext->codec_id %d", avCodecContext->codec_id);
     LOGI("avCodecContext->width %d", avCodecContext->width);
+    LOGI("avCodecContext->height %d", avCodecContext->height);
     LOGI("avCodecContext->coded_width %d", avCodecContext->coded_width);
+    LOGI("avCodecContext->coded_height %d", avCodecContext->coded_height);
     LOGI("avCodecContext->codec_type %d", avCodecContext->codec_type);
     LOGI("avCodecContext->pix_fmt %d", avCodecContext->pix_fmt);
     LOGI("avCodecContext->sw_pix_fmt %d", avCodecContext->sw_pix_fmt);
@@ -126,10 +138,9 @@ Java_com_cgz_ffmpeg_FfmpegActivity_play(JNIEnv *env, jobject thiz, jstring url_,
     AVPixelFormat avPixelFormat = avCodecContext->pix_fmt;
     if (avPixelFormat == AV_PIX_FMT_NONE) {
         LOGE("不支持AV_PIX_FMT_NONE");
-        return -1;
     }
     LOGI("avPixelFormat : %d", avPixelFormat);
-    swsContext = sws_getContext(inputWidth, inputHeight, avPixelFormat, inputWidth,
+    swsContext = sws_getContext(inputWidth, inputHeight, AV_PIX_FMT_YUV420P, inputWidth,
                                 inputHeight,
                                 AV_PIX_FMT_RGBA, SWS_BICUBIC,
                                 nullptr, nullptr, nullptr);
@@ -145,6 +156,7 @@ Java_com_cgz_ffmpeg_FfmpegActivity_play(JNIEnv *env, jobject thiz, jstring url_,
     LOGI("window 转为 buffer 成功");
 
     while (av_read_frame(avFormatContext, avPacket) >= 0) {
+        LOGI("av_read_frame");
         // 读出来的是视频数据就处理，音频数据就不管
         if (avPacket->stream_index == videoIndex) {
             int ret = avcodec_send_packet(avCodecContext, avPacket);

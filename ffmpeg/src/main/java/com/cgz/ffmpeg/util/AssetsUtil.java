@@ -34,6 +34,7 @@ public class AssetsUtil {
         File file = new File(filename);
         if (file.exists()) {
             file.delete();
+            Log.d("FileUtils", "delete " + file.getAbsolutePath());
         }
 
 //        if (!file.exists()) {
